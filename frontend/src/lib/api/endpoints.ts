@@ -66,6 +66,7 @@ export const endpoints = {
     dashboard: '/admin/dashboard',
     products: '/admin/products',
     product: (id: string) => `/admin/products/${id}`,
+    uploadProductImage: '/admin/products/upload',
     orders: '/admin/orders',
     order: (orderNumber: string) => `/admin/orders/${orderNumber}`,
     coupons: '/admin/coupons',

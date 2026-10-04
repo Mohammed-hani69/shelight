@@ -87,6 +87,21 @@ export const adminApi = {
     return apiClient.put<AdminProduct>(endpoints.admin.product(id), payload)
   },
 
+  /**
+   * رفع صورة منتج — يعيد المسار النسبي الذي يُحفظ لاحقاً ضمن
+   * `images[].url`. الرفع منفصل عن حفظ المنتج عمداً: طلب الحفظ JSON صغير،
+   * والرفع ملف ثنائي بسقف أكبر.
+   */
+  async uploadProductImage(file: File): Promise<string> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await apiClient.postForm<{ path: string }>(
+      endpoints.admin.uploadProductImage,
+      formData
+    )
+    return res.path
+  },
+
   /** حذف منطقي — يُخفي المنتج عن المتجر. */
   async deleteProduct(id: string): Promise<boolean> {
     const res = await apiClient.delete<{ isActive: boolean }>(endpoints.admin.product(id))

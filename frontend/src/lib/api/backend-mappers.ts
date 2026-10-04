@@ -6,6 +6,7 @@
  * كل adapter يستدعي هذه الدوال ولا يصلح الحقول يدوياً.
  */
 
+import { resolveMediaUrl } from '@/lib/api/media'
 import type { Category, InventoryStatus, Product } from '@/types/product'
 
 export interface BackendMeta {
@@ -95,7 +96,11 @@ export function mapProductListItem(item: BackendProductListItem): Product {
     images: Array.isArray(item.images)
       ? item.images.map((image) => ({
           id: asString(image.id),
-          url: asString(image.url),
+          // `resolveMediaUrl` ضروري لا تجميلي: صورة منتج مرفوعة من اللوحة
+          // تُخزَّن كمسار نسبي `/uploads/products/...`، و`next/image` يعتبر
+          // ما يبدأ بـ `/` مساراً على أصل المتجر (المنفذ 3000) لا على الـ API
+          // (المنفذ 5000) => 404. الروابط المطلقة تمرّ كما هي.
+          url: resolveMediaUrl(asString(image.url)),
           alt: asString(image.alt),
         }))
       : [],

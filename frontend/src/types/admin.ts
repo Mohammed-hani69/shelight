@@ -31,6 +31,10 @@ export interface AdminImage {
   id: string
   url: string
   alt?: string | null
+  /** النص البديل بالإنجليزية — للتحرير في اللوحة (لا يُترجم في هذه العقود). */
+  altEn?: string | null
+  /** النص البديل بالعربية — للتحرير في اللوحة. */
+  altAr?: string | null
 }
 
 /** منتج من لوحة التحكم — إخراج `ProductOut` + حقول خام إضافية للتحرير. */

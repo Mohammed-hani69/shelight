@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ImagePlus, Loader2, Plus, Save, Trash2, X } from 'lucide-react'
+import { ImagePlus, Loader2, Plus, Save, Trash2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { adminApi } from '@/features/admin/services/admin-api'
 import { productApi } from '@/features/products/services/product-api'
 import { friendlyMessage } from '@/lib/api/errors'
+import { resolveMediaUrl } from '@/lib/api/media'
 import type { AdminProduct, AdminProductWrite } from '@/types/admin'
 import type { Category } from '@/types/product'
 
@@ -26,6 +27,9 @@ interface ImageRow {
   alt_en: string
   alt_ar: string
 }
+
+/** الصيغ التي يقبلها الـ backend — نفس قائمة `ALLOWED_IMAGE_EXTENSIONS`. */
+const ACCEPTED_IMAGE_TYPES = 'image/png,image/jpeg,image/webp,image/gif,image/avif'
 
 interface FormState {
   slug: string
@@ -110,7 +114,12 @@ function toFormState(product: AdminProduct): FormState {
     isActive: product.isActive !== false,
     images:
       (product.images ?? []).length > 0
-        ? product.images.map((image) => ({ url: image.url, alt_en: '', alt_ar: '' }))
+        ? product.images.map((image) => ({
+            url: image.url,
+            // نحتفظ بالنص البديل المحفوظ: تصفيره كان يمسحه عند كل حفظ.
+            alt_en: image.altEn ?? '',
+            alt_ar: image.altAr ?? '',
+          }))
         : [{ url: '', alt_en: '', alt_ar: '' }],
     faqs: product.faqs?.map((faq) => ({ question: faq.question, answer: faq.answer })) ?? [],
   }
@@ -130,6 +139,10 @@ export function ProductForm({ product }: ProductFormProps) {
   const [categories, setCategories] = useState<Category[]>([])
   const [loadingCategories, setLoadingCategories] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  // فهرس الصف الجاري رفعه — يسمح بإظهار مؤشر تحميل على صورة واحدة
+  // دون تعطيل بقية النموذج، ولكل صف input مخفي خاص به.
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
+  const fileInputs = useRef<Record<number, HTMLInputElement | null>>({})
 
   useEffect(() => {
     productApi
@@ -153,6 +166,33 @@ export function ProductForm({ product }: ProductFormProps) {
       .split(',')
       .map((part) => part.trim())
       .filter(Boolean)
+
+  /**
+   * رفع صورة إلى الخادم ووضع المسار العائد في الصف.
+   *
+  * الرفع منفصل عن حفظ المنتج: الملف يذهب أولاً، ثم يُرسَل المسار ضمن
+  * `images` مع بقية بيانات المنتج. لو فشل الرفع تبقى الصورة الحالية كما هي.
+   */
+  const handleImageUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    // تصفير القيمة يسمح باختيار نفس الملف مرة أخرى لإطلاق حدث change.
+    event.target.value = ''
+    if (!file) return
+    setUploadingIndex(index)
+    try {
+      const path = await adminApi.uploadProductImage(file)
+      setForm((prev) => {
+        const images = [...prev.images]
+        images[index] = { ...images[index], url: path }
+        return { ...prev, images }
+      })
+      toast.success('تم رفع الصورة')
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setUploadingIndex(null)
+    }
+  }
 
   const buildPayload = (): AdminProductWrite => ({
     slug: form.slug.trim(),
@@ -186,6 +226,12 @@ export function ProductForm({ product }: ProductFormProps) {
     event.preventDefault()
     if (!form.name_en.trim() || !form.price) {
       toast.error('الاسم الإنجليزي والسعر حقلان إجباريان.')
+      return
+    }
+    // الحفظ قبل انتهاء الرفع يجعل صورةً في الطريق تضيع بصمت: المسار لم
+    // يُضبط بعد فلا يدخل في `images`، والملف يبقى على القرص بلا مرجع.
+    if (uploadingIndex !== null) {
+      toast.error('انتظر انتهاء رفع الصورة قبل الحفظ.')
       return
     }
     setSubmitting(true)
@@ -364,7 +410,7 @@ export function ProductForm({ product }: ProductFormProps) {
           <div key={index} className="flex flex-col gap-2 rounded-lg border border-border/60 p-3 sm:flex-row sm:items-center">
             {image.url ? (
               <Image
-                src={image.url}
+                src={resolveMediaUrl(image.url)}
                 alt=""
                 width={48}
                 height={48}
@@ -376,16 +422,29 @@ export function ProductForm({ product }: ProductFormProps) {
                 <ImagePlus className="h-5 w-5" aria-hidden="true" />
               </span>
             )}
-            <Input
-              dir="ltr"
-              className="flex-1"
-              placeholder="رابط الصورة https://…"
-              value={image.url}
-              onChange={(e) => {
-                const next = [...form.images]
-                next[index] = { ...image, url: e.target.value }
-                setField('images', next)
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={uploadingIndex === index}
+              onClick={() => fileInputs.current[index]?.click()}
+            >
+              {uploadingIndex === index ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Upload className="h-4 w-4" aria-hidden="true" />
+              )}
+              {uploadingIndex === index ? 'جارٍ الرفع…' : 'رفع صورة'}
+            </Button>
+            <input
+              ref={(el) => {
+                fileInputs.current[index] = el
               }}
+              type="file"
+              accept={ACCEPTED_IMAGE_TYPES}
+              className="hidden"
+              onChange={(e) => void handleImageUpload(index, e)}
             />
             <Input
               className="sm:w-40"
