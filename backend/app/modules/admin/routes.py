@@ -36,6 +36,7 @@ from app.modules.customers.schemas import CustomerPublicSchema
 from app.modules.orders.schemas import OrderAdminOut
 from app.modules.products.schemas import ProductOut
 from app.modules.products.services import review_stats
+from app.modules.products.upload import save_uploaded_image
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -101,6 +102,18 @@ def _product_payload_with_stats(product: Product) -> dict:
     payload["isActive"] = product.is_active
     payload["categorySlug"] = product.category.slug if product.category else None
     payload["concernSlugs"] = [c.slug for c in (product.concerns or [])]
+    # `ProductOut` يترجم `alt` حسب اللغة، فنمرّر النصين الخامّين أيضاً: لولا
+    # ذلك لفّح النموذج `altEn`/`altAr` وأرسلهما فارغين، فيمسح كل حفظ أي
+    # نص بديل مكتوب سابقاً.
+    payload["images"] = [
+        {
+            "id": str(image.id),
+            "url": image.url,
+            "altEn": image.alt_en or "",
+            "altAr": image.alt_ar or "",
+        }
+        for image in (product.images or [])
+    ]
     return payload
 
 
@@ -124,6 +137,25 @@ def create_product():
     """إنشاء منتج جديد."""
     product = admin_service.create_product(load_json_or_400(ProductWriteSchema()))
     return jsonify({"data": _product_payload_with_stats(product)}), 201
+
+
+@bp.post("/products/upload")
+@admin_required()
+def upload_product_image():
+    """رفع صورة منتج —multipart، ويرجع المسار النسبي ليُحفظ مع المنتج.
+
+    نقطة الرفع منفصلة عن `POST /products` عمداً: حفظ المنتج طلب JSON صغير
+    (سقفه 64KB)، والرفع ملف ثنائي. دمجهما كان يعني رفع سقف الطلب العام
+    ليتسع لملف صورة، فيصبح كل طلب JSON عرضة لسقف 8MB.
+
+    الرابط لا يُحفظ هنا — النموذج يرسله بعد ذلك ضمن `images[].url` في طلب
+    حفظ المنتج، فتبقى قاعدة البيانات единاً لحقيقة الصورة (كما في البنرات).
+    """
+    path = save_uploaded_image(
+        subdir="products",
+        max_bytes_key="PRODUCT_MAX_BYTES",
+    )
+    return jsonify({"data": {"path": path}}), 201
 
 
 @bp.get("/products/<int:product_id>")

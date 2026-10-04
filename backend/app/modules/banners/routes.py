@@ -1,10 +1,7 @@
 """روتات البنرات — استهلاك عام في المتجر + إدارة كاملة من اللوحة."""
 from __future__ import annotations
 
-import os
-from uuid import uuid4
-
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, jsonify, request
 
 from app.core.errors import ApiError
 from app.core.schema import load_json_or_400
@@ -16,6 +13,7 @@ from app.modules.banners.schemas import (
     BannerWriteSchema,
     banner_payload,
 )
+from app.modules.products.upload import save_uploaded_image
 
 # ---------------------------------------------------------------------------
 # مسار عام — تستهلكه الرئيسية لعرض البنرات
@@ -97,32 +95,13 @@ def move_banner(banner_id: int):
 @admin_bp.post("/upload")
 @admin_required()
 def upload_banner_image():
-    """استقبال صورة بنر — يرفع سقف حجم الطلب مؤقتاً لهذا المسار فقط.
+    """استقبال صورة بنر — نفس آلية رفع صور المنتجات (`products.upload`).
 
-    `request.max_content_length` في Flask 3.0 قراءة فقط (من الإعدادات)،
-    لذا نرفع `MAX_CONTENT_LENGTH` لحظة قراءة الملف ثم نعيده في `finally`
-    حتى يبقى السقف العام 64KB لبقية النقاط.
+    كان هذا المسار يعتمد على امتداد الملف وحده، فكان `evil.exe.png` يُقبل
+    ويُحفظ بامتداد `.png`. التحقق انتقل لبايتات سحرية في الوحدة المشتركة.
     """
-    previous_limit = current_app.config["MAX_CONTENT_LENGTH"]
-    current_app.config["MAX_CONTENT_LENGTH"] = current_app.config["BANNER_MAX_BYTES"]
-    try:
-        file = request.files.get("file")
-    finally:
-        current_app.config["MAX_CONTENT_LENGTH"] = previous_limit
-
-    if file is None or not file.filename:
-        raise ApiError("لم يتم اختيار ملف", status_code=422, code="no_file")
-
-    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
-    if ext not in current_app.config["ALLOWED_IMAGE_EXTENSIONS"]:
-        raise ApiError(
-            "صيغة الصورة غير مدعومة (المسموح: png, jpg, jpeg, webp, gif, avif)",
-            status_code=422,
-            code="bad_image_type",
-        )
-
-    folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "banners")
-    os.makedirs(folder, exist_ok=True)
-    filename = f"{uuid4().hex}.{ext}"
-    file.save(os.path.join(folder, filename))
-    return jsonify({"data": {"path": f"/uploads/banners/{filename}"}}), 201
+    path = save_uploaded_image(
+        subdir="banners",
+        max_bytes_key="BANNER_MAX_BYTES",
+    )
+    return jsonify({"data": {"path": path}}), 201

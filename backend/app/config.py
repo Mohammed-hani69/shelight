@@ -74,9 +74,12 @@ class Config:
     TRACKING_CURRENCY = os.getenv("TRACKING_CURRENCY", "EGP")
     # أقصى عدد أحداث في الدفعة الواحدة لمنع إساءة استخدام نقطة الاستقبال.
     TRACKING_MAX_BATCH = int(os.getenv("TRACKING_MAX_BATCH", "50"))
-    # رفع صور البنرات — يُخزَّن على القرص وتُخدم عبر /uploads.
+    # رفع الصور (بنرات + منتجات) — تُخزَّن على القرص وتُخدم عبر /uploads.
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
+    # سقف لكل نوع على حدة: صور المنتجات أصغر حجماً عادةً من صور البنرات
+    # العريضة، والخلط كان يجعل حدّاً واحداً غير مضبوط لأي منهما.
     BANNER_MAX_BYTES = int(os.getenv("BANNER_MAX_BYTES", str(5 * 1024 * 1024)))
+    PRODUCT_MAX_BYTES = int(os.getenv("PRODUCT_MAX_BYTES", str(8 * 1024 * 1024)))
     ALLOWED_IMAGE_EXTENSIONS = {
         "png",
         "jpg",

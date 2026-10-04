@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 
 import click
-from flask import Flask, send_from_directory
+from flask import current_app, Flask, send_from_directory
 from flask_cors import CORS
 
 from app.config import config_map, validate_production_secrets
@@ -38,13 +38,16 @@ def create_app(config_name: str | None = None) -> Flask:
     register_error_handlers(app)
     register_cli(app)
 
-    # مجلد الرفع يُنشأ عند الإقلاع، وتُخدم ملفاته مباشرة (صور البنرات).
-    upload_folder = app.config["UPLOAD_FOLDER"]
-    os.makedirs(upload_folder, exist_ok=True)
+    # مجلد الرفع يُنشأ عند الإقلاع، وتُخدم ملفاته مباشرة (صور البنرات
+    # وصور المنتجات المرفوعة من اللوحة).
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     @app.get("/uploads/<path:filename>")
     def uploaded_file(filename: str):
-        return send_from_directory(upload_folder, filename)
+        # نقرأ المسار من الإعدادات عند كل طلب لا من متغيّر مقفول عند الإنشاء:
+        # الإغلاق كان يجعل تغيير UPLOAD_FOLDER بعد الإقلاع يجعل الكتابة تذهب
+        # لمجلد جديد بينما القراءة تبقى على القديم = صور مفقودة بعد أي تعديل.
+        return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
 
     @app.get("/health")
     def health():
