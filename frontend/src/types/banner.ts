@@ -5,6 +5,7 @@ export interface Banner {
   id: string
   section: BannerSection
   imageUrl: string
+  mobileImageUrl?: string | null
   linkUrl?: string | null
   sortOrder: number
 }

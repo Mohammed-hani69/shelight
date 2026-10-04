@@ -27,6 +27,7 @@ class Config:
         hours=int(os.getenv("JWT_REFRESH_HOURS", "72"))
     )
     JWT_ALGORITHM = "HS256"
+    BOSTA_API_URL = os.getenv("BOSTA_API_URL", "").rstrip("/")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # بعد الـ commit تبقى الكائنات صالحة للقراءة، فلا يعيد كل استعلام
     # بناء تحميل ما بعد الحفظ.

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Alexandria, Tajawal } from 'next/font/google'
 import { dir } from '@/lib/i18n'
+import { config } from '@/config/site'
 import { Providers } from '@/components/providers/providers'
 import '@/app/globals.css'
 
@@ -22,34 +23,41 @@ const tajawal = Tajawal({
 
 export const metadata: Metadata = {
   title: {
-    default: 'SHE LIGHT — مستحضرات جلدية فاخرة',
+    default: 'شيلايت | مستحضرات تجميل وعناية بالبشرة والشعر في مصر',
     template: '%s | SHE LIGHT',
   },
   description:
-    'SHE LIGHT تقدم مستحضرات جلدية مصرية فاخرة تشمل العناية بالبشرة والشعر والعين والأظافر والعناية بالأطفال — جمال مستوحى سريرياً لإشراقتكِ.',
+    'تسوقي مستحضرات SHE LIGHT للعناية بالبشرة والشعر والجسم في مصر. اكتشفي منتجات الترطيب والتنظيف والسيروم والزيوت وروتين العناية المناسب لكِ.',
   keywords: [
-    'مستحضرات جلدية',
-    'العناية بالبشرة في مصر',
-    'مستحضرات تجميل فاخرة',
-    'العناية بالشعر',
-    'العناية بالعين',
-    'العناية بالأظافر',
+    'مستحضرات تجميل في مصر',
+    'منتجات العناية بالبشرة',
+    'منتجات العناية بالشعر',
+    'روتين العناية بالبشرة',
+    'غسول الوجه',
+    'مرطب للبشرة',
+    'سيروم للبشرة',
+    'زيوت طبيعية للشعر',
+    'العناية بالبشرة الدهنية',
+    'العناية بالبشرة الجافة',
+    'مستحضرات العناية بالجسم',
     'SHE LIGHT',
   ],
   openGraph: {
-    title: 'SHE LIGHT — مستحضرات جلدية فاخرة',
+    title: 'شيلايت | مستحضرات تجميل وعناية بالبشرة والشعر في مصر',
     description:
-      'جمال مستوحى سريرياً لإشراقتكِ. تسوّقي العناية الفاخرة بالبشرة والشعر والجسم.',
+      'اكتشفي منتجات شيلايت للعناية بالبشرة والشعر والجسم، واختاري روتين الجمال المناسب لكِ.',
     type: 'website',
     locale: 'ar_EG',
     siteName: 'SHE LIGHT',
+    images: [{ url: '/images/hero/hero-1.webp', alt: 'منتجات SHE LIGHT للعناية والجمال' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SHE LIGHT — مستحضرات جلدية فاخرة',
-    description: 'جمال مستوحى سريرياً لإشراقتكِ.',
+    title: 'شيلايت | العناية بالبشرة والشعر في مصر',
+    description: 'تسوقي منتجات SHE LIGHT للعناية بالبشرة والشعر والجسم.',
+    images: ['/images/hero/hero-1.webp'],
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(config.site.url),
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

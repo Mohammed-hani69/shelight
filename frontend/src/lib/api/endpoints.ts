@@ -96,6 +96,7 @@ export const endpoints = {
     },
     shipping: {
       bosta: '/admin/shipping/bosta',
+      bostaOverview: '/admin/shipping/bosta/overview',
       testBosta: '/admin/shipping/bosta/test',
       enableBosta: '/admin/shipping/bosta/enable',
       disableBosta: '/admin/shipping/bosta/disable',

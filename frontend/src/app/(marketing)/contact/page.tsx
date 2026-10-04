@@ -5,6 +5,7 @@ import { SectionHeading } from '@/components/marketing/section-heading'
 export const metadata: Metadata = {
   title: 'تواصل معنا',
   description: 'تواصلي مع فريق شيلايت — نحن هنا لمساعدتك في الطلبات والمنتجات وكل ما يخص الإشراقة.',
+  alternates: { canonical: '/contact' },
 }
 
 const channels = [

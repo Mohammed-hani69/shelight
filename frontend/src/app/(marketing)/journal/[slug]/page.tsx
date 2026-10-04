@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Breadcrumbs } from '@/components/common/breadcrumbs'
 import { Badge } from '@/components/ui/badge'
 import { journalService } from '@/features/journal/services/journal-service'
+import { resolveMediaUrl } from '@/lib/api/media'
 
 interface JournalPostPageProps {
   params: Promise<{ slug: string }>
@@ -19,7 +20,25 @@ export async function generateMetadata({ params }: JournalPostPageProps): Promis
   if (!post) return { title: 'المقال غير موجود' }
   return {
     title: post.title,
-    description: post.excerpt,
+    description: post.excerpt.slice(0, 160),
+    alternates: { canonical: `/journal/${post.slug}` },
+    openGraph: {
+      title: `${post.title} | مدونة SHE LIGHT`,
+      description: post.excerpt.slice(0, 160),
+      type: 'article',
+      images: [
+        {
+          url: post.image.startsWith('/uploads/') ? resolveMediaUrl(post.image) : post.image,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt.slice(0, 160),
+      images: [post.image.startsWith('/uploads/') ? resolveMediaUrl(post.image) : post.image],
+    },
   }
 }
 

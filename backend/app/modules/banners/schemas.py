@@ -11,6 +11,7 @@ class BannerWriteSchema(Schema):
 
     section = fields.Str(required=True, validate=validate.OneOf(SECTIONS))
     image_url = fields.Str(required=True, data_key="imageUrl", validate=validate.Length(min=1, max=500))
+    mobile_image_url = fields.Str(data_key="mobileImageUrl", allow_none=True, validate=validate.Length(max=500))
     link_url = fields.Str(data_key="linkUrl", allow_none=True, validate=validate.Length(max=500))
     sort_order = fields.Int(data_key="sortOrder", load_default=0)
     is_active = fields.Bool(data_key="isActive", load_default=True)
@@ -20,6 +21,7 @@ class BannerPatchSchema(Schema):
     """تحديث جزئي سريع — إظهار/إخفاء/ترتيب/تعديل رابط."""
 
     image_url = fields.Str(data_key="imageUrl", validate=validate.Length(min=1, max=500))
+    mobile_image_url = fields.Str(data_key="mobileImageUrl", allow_none=True, validate=validate.Length(max=500))
     link_url = fields.Str(data_key="linkUrl", allow_none=True, validate=validate.Length(max=500))
     sort_order = fields.Int(data_key="sortOrder")
     is_active = fields.Bool(data_key="isActive")
@@ -35,6 +37,7 @@ def banner_payload(banner) -> dict:
         "id": str(banner.id),
         "section": banner.section,
         "imageUrl": banner.image_url,
+        "mobileImageUrl": banner.mobile_image_url,
         "linkUrl": banner.link_url,
         "sortOrder": banner.sort_order,
         "isActive": banner.is_active,

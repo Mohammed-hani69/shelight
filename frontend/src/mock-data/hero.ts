@@ -1,6 +1,7 @@
 export interface HeroSlide {
   id: string
   image: string
+  mobileImage?: string
   eyebrow: string
   title: string
   subtitle: string

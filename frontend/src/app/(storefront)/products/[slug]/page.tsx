@@ -10,6 +10,7 @@ import { StickyCartBar } from '@/features/products/components/sticky-cart-bar'
 import { ProductViewTracker } from '@/features/tracking/product-view-tracker'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { productService } from '@/features/products/services/product-service'
+import { resolveMediaUrl } from '@/lib/api/media'
 import { config } from '@/config/site'
 
 interface ProductPageProps {
@@ -23,12 +24,23 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   return {
     title: product.name,
-    description: product.description,
+    description: product.description.slice(0, 160),
+    alternates: { canonical: `/products/${product.slug}` },
     openGraph: {
       title: `${product.name} — SHE LIGHT`,
-      description: product.description,
-      images: product.images[0] ? [{ url: product.images[0].url }] : [],
+      description: product.description.slice(0, 160),
+      images: product.images[0]
+        ? [{ url: resolveMediaUrl(product.images[0].url), alt: product.images[0].alt || product.name }]
+        : [{ url: '/images/hero/hero-1.webp', alt: 'منتجات SHE LIGHT للعناية والجمال' }],
       type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${product.name} — SHE LIGHT`,
+      description: product.description.slice(0, 160),
+      images: product.images[0]
+        ? [resolveMediaUrl(product.images[0].url)]
+        : ['/images/hero/hero-1.webp'],
     },
   }
 }
@@ -45,7 +57,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     '@type': 'Product',
     name: product.name,
     description: product.description,
-    image: product.images.map((i) => i.url),
+    image: product.images.map((image) => resolveMediaUrl(image.url)),
     brand: { '@type': 'Brand', name: config.site.name },
     offers: {
       '@type': 'Offer',
@@ -55,11 +67,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
         ? 'https://schema.org/OutOfStock'
         : 'https://schema.org/InStock',
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating,
-      reviewCount: product.reviewCount,
-    },
+    ...(product.reviewCount > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: product.rating,
+            reviewCount: product.reviewCount,
+          },
+        }
+      : {}),
   }
 
   // حشوة إضافية: شريط الشراء الثابت يطفو فوق المحتوى في الموبايل،

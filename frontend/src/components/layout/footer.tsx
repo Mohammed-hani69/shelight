@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -158,13 +159,8 @@ export function Footer() {
       {/* الأعمدة */}
       <div className="container-shelight grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-5">
         <div>
-          <Link href="/" className="mb-4 flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-display text-base font-bold text-primary-foreground">
-              S
-            </span>
-            <span className="font-display text-xl font-semibold tracking-[0.12em] text-plum">
-              SHE&nbsp;LIGHT
-            </span>
+          <Link href="/" className="mb-4 inline-flex items-center" aria-label="SHE LIGHT">
+            <Image src="/images/logo.png" alt="SHE LIGHT" width={640} height={424} className="h-16 w-auto object-contain" />
           </Link>
           <p className="text-sm leading-relaxed text-muted">
             {t.footer.tagline}

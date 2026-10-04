@@ -46,6 +46,7 @@ export function HeroCarousel() {
         banners.map((banner) => ({
           id: banner.id,
           image: banner.imageUrl,
+          mobileImage: banner.mobileImageUrl ?? undefined,
           eyebrow: '',
           title: '',
           subtitle: '',
@@ -130,6 +131,26 @@ export function HeroCarousel() {
             >
               {slide.ctaHref ? (
                 <Link href={slide.ctaHref} className="relative block h-full w-full">
+                  <picture className="absolute inset-0">
+                    {slide.mobileImage && (
+                      <source media="(max-width: 767px)" srcSet={slide.mobileImage} />
+                    )}
+                    <Image
+                      src={slide.image}
+                      alt={slide.title}
+                      fill
+                      priority={i === 0}
+                      sizes="100vw"
+                      quality={90}
+                      className="object-cover"
+                    />
+                  </picture>
+                </Link>
+              ) : (
+                <picture className="absolute inset-0">
+                  {slide.mobileImage && (
+                    <source media="(max-width: 767px)" srcSet={slide.mobileImage} />
+                  )}
                   <Image
                     src={slide.image}
                     alt={slide.title}
@@ -139,17 +160,7 @@ export function HeroCarousel() {
                     quality={90}
                     className="object-cover"
                   />
-                </Link>
-              ) : (
-                <Image
-                  src={slide.image}
-                  alt={slide.title}
-                  fill
-                  priority={i === 0}
-                  sizes="100vw"
-                  quality={90}
-                  className="object-cover"
-                />
+                </picture>
               )}
             </div>
           ))}

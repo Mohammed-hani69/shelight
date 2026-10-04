@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'الباقات وطقوس العناية',
   description:
     'وفّري مع روتينات شيلايت الكاملة — عناية للبشرة والشعر وباقات شاملة بسعر أفضل.',
+  alternates: { canonical: '/bundles' },
 }
 
 export default function Page() {

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search, Heart, User, ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/store/cart-store'
 import { useUIStore } from '@/store/ui-store'
@@ -35,27 +36,17 @@ export function Header() {
         <div className="container-shelight flex h-14 items-center justify-center lg:hidden">
           <Link
             href="/"
-            className="flex items-center gap-2"
+            className="flex h-14 items-center justify-center"
             aria-label={t.header.home}
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-display text-base font-bold text-primary-foreground">
-              S
-            </span>
-            <span className="font-display text-lg font-semibold tracking-[0.12em] text-plum">
-              SHE&nbsp;LIGHT
-            </span>
+            <Image src="/images/logo.png" alt="SHE LIGHT" width={640} height={424} priority className="h-12 w-auto object-contain" />
           </Link>
         </div>
 
         {/* ديسكتوب: اللوجو يساراً والتنقل والأدوات */}
         <div className="container-shelight hidden h-16 items-center justify-between gap-3 lg:flex">
-          <Link href="/" className="flex items-center gap-2" aria-label={t.header.home}>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-display text-lg font-bold text-primary-foreground">
-              S
-            </span>
-            <span className="font-display text-2xl font-semibold tracking-[0.12em] text-plum">
-              SHE&nbsp;LIGHT
-            </span>
+          <Link href="/" className="flex items-center" aria-label={t.header.home}>
+            <Image src="/images/logo.png" alt="SHE LIGHT" width={640} height={424} priority className="h-14 w-auto object-contain" />
           </Link>
 
           <DesktopNavigation />

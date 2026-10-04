@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'من نحن',
   description:
     'شيلايت علامة مصرية فاخرة للمستحضرات الجلدية — جمال مستوحى سريرياً لإشراقتكِ.',
+  alternates: { canonical: '/about' },
 }
 
 const values = [

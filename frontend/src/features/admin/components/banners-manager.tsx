@@ -43,6 +43,7 @@ const SECTION_LABELS: Record<AdminBannerSection, string> = {
 interface BannerFormState {
   section: AdminBannerSection
   imageUrl: string
+  mobileImageUrl: string
   linkUrl: string
   sortOrder: string
   isActive: boolean
@@ -51,6 +52,7 @@ interface BannerFormState {
 const EMPTY_FORM: BannerFormState = {
   section: 'HERO',
   imageUrl: '',
+  mobileImageUrl: '',
   linkUrl: '',
   sortOrder: '0',
   isActive: true,
@@ -61,12 +63,13 @@ export function BannersManager() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [uploading, setUploading] = useState<'desktop' | 'mobile' | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [editing, setEditing] = useState<AdminBanner | null>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState<BannerFormState>(EMPTY_FORM)
-  const fileInput = useRef<HTMLInputElement | null>(null)
+  const desktopFileInput = useRef<HTMLInputElement | null>(null)
+  const mobileFileInput = useRef<HTMLInputElement | null>(null)
 
   const bySection = useMemo(() => {
     return SECTIONS.map((section) => ({
@@ -116,6 +119,7 @@ export function BannersManager() {
     setForm({
       section: banner.section,
       imageUrl: banner.imageUrl,
+      mobileImageUrl: banner.mobileImageUrl ?? '',
       linkUrl: banner.linkUrl ?? '',
       sortOrder: String(banner.sortOrder ?? 0),
       isActive: banner.isActive,
@@ -123,31 +127,38 @@ export function BannersManager() {
     setFormOpen(true)
   }
 
-  const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (
+    target: 'desktop' | 'mobile',
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
-    setUploading(true)
+    setUploading(target)
     try {
       const path = await adminApi.uploadBannerImage(file)
-      setForm((prev) => ({ ...prev, imageUrl: path }))
+      setForm((prev) => ({
+        ...prev,
+        [target === 'desktop' ? 'imageUrl' : 'mobileImageUrl']: path,
+      }))
       toast.success('تم رفع الصورة')
     } catch (err) {
       toast.error(friendlyMessage(err))
     } finally {
-      setUploading(false)
+      setUploading(null)
     }
   }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!form.imageUrl.trim()) {
-      toast.error('اختر صورة أو أدخل رابط الصورة.')
+    if (!form.imageUrl.trim() || !form.mobileImageUrl.trim()) {
+      toast.error('ارفع صورة الكمبيوتر وصورة الموبايل أولاً.')
       return
     }
     const payload: AdminBannerWrite = {
       section: form.section,
       imageUrl: form.imageUrl.trim(),
+      mobileImageUrl: form.mobileImageUrl.trim(),
       linkUrl: form.linkUrl.trim() || null,
       sortOrder: form.sortOrder === '' ? 0 : Number(form.sortOrder),
       isActive: form.isActive,
@@ -242,7 +253,7 @@ export function BannersManager() {
                   <table className="w-full min-w-[720px] text-right text-sm">
                     <thead>
                       <tr className="border-b border-border text-xs text-muted">
-                        <th className="px-4 py-3 font-medium">الصورة</th>
+                        <th className="px-4 py-3 font-medium">صور الكمبيوتر والموبايل</th>
                         <th className="px-4 py-3 font-medium">الرابط</th>
                         <th className="px-4 py-3 font-medium">الترتيب</th>
                         <th className="px-4 py-3 font-medium">الحالة</th>
@@ -261,13 +272,28 @@ export function BannersManager() {
                             )}
                           >
                             <td className="px-4 py-3">
-                              {/* روابط قد يكتبها المدير — لا نقيّدها بالنطاقات */}
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={resolveMediaUrl(banner.imageUrl)}
-                                alt=""
-                                className="h-14 w-24 rounded-md border border-border object-cover"
-                              />
+                              <div className="flex items-center gap-2">
+                                <div>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={resolveMediaUrl(banner.imageUrl)}
+                                    alt=""
+                                    className="h-14 w-24 rounded-md border border-border object-cover"
+                                  />
+                                  <span className="text-[10px] text-muted">كمبيوتر</span>
+                                </div>
+                                {banner.mobileImageUrl && (
+                                  <div>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={resolveMediaUrl(banner.mobileImageUrl)}
+                                      alt=""
+                                      className="h-14 w-12 rounded-md border border-border object-cover"
+                                    />
+                                    <span className="text-[10px] text-muted">موبايل</span>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className="max-w-[220px] truncate px-4 py-3">
                               {banner.linkUrl ? (
@@ -356,7 +382,7 @@ export function BannersManager() {
           <DialogHeader>
             <DialogTitle>{editing ? 'تعديل بنر' : 'بنر جديد'}</DialogTitle>
             <DialogDescription>
-              ارفع صورة (أو الصق رابطها) وحدّد رابط الوجهة عند الضغط عليها.
+              ارفع صورة للكمبيوتر وأخرى للموبايل، ثم حدّد رابط الوجهة عند الضغط عليها.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -379,46 +405,57 @@ export function BannersManager() {
               </select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="banner-image">الصورة</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="banner-image"
-                  dir="ltr"
-                  placeholder="/uploads/banners/… أو https://…"
-                  value={form.imageUrl}
-                  onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={uploading}
-                  onClick={() => fileInput.current?.click()}
-                >
-                  {uploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <Upload className="h-4 w-4" aria-hidden="true" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              {([
+                ['desktop', 'صورة الكمبيوتر', form.imageUrl, desktopFileInput],
+                ['mobile', 'صورة الموبايل', form.mobileImageUrl, mobileFileInput],
+              ] as const).map(([target, label, imageUrl, inputRef]) => (
+                <div key={target} className="space-y-1.5">
+                  <Label htmlFor={`banner-${target}-image`}>{label}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id={`banner-${target}-image`}
+                      dir="ltr"
+                      placeholder="ارفع صورة لهذا الجهاز"
+                      value={imageUrl}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          [target === 'desktop' ? 'imageUrl' : 'mobileImageUrl']: e.target.value,
+                        }))
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={uploading !== null}
+                      onClick={() => inputRef.current?.click()}
+                    >
+                      {uploading === target ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      ) : (
+                        <Upload className="h-4 w-4" aria-hidden="true" />
+                      )}
+                      رفع
+                    </Button>
+                    <input
+                      ref={inputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => void handleFile(target, event)}
+                    />
+                  </div>
+                  {imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={resolveMediaUrl(imageUrl)}
+                      alt=""
+                      className="mt-2 h-28 w-full rounded-md border border-border object-cover"
+                    />
                   )}
-                  رفع صورة
-                </Button>
-                <input
-                  ref={fileInput}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFile}
-                />
-              </div>
-              {form.imageUrl && (
-                // معاينة الرابط المدخل مباشرة
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={resolveMediaUrl(form.imageUrl)}
-                  alt=""
-                  className="mt-2 h-28 w-full rounded-md border border-border object-cover"
-                />
-              )}
+                </div>
+              ))}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -454,7 +491,7 @@ export function BannersManager() {
             </div>
 
             <DialogFooter>
-              <Button type="submit" disabled={saving || uploading}>
+              <Button type="submit" disabled={saving || uploading !== null}>
                 {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 {editing ? 'حفظ' : 'إضافة'}
               </Button>

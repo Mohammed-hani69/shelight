@@ -18,6 +18,9 @@ export const bannerService = {
       return (items ?? []).map((banner) => ({
         ...banner,
         imageUrl: resolveMediaUrl(banner.imageUrl),
+        mobileImageUrl: banner.mobileImageUrl
+          ? resolveMediaUrl(banner.mobileImageUrl)
+          : null,
       }))
     } catch {
       return []

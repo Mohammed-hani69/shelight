@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: 'تسوّقي كل المنتجات',
   description:
     'تصفحي مجموعة شيلايت الكاملة — العناية بالبشرة والشعر والعين والأظافر والأطفال. مستحضرات جلدية فاخرة لكل طقس.',
+  alternates: { canonical: '/shop' },
 }
 
 interface ShopPageProps {

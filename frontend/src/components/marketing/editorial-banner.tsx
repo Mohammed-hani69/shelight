@@ -15,7 +15,9 @@ const DEFAULT_HREF = '/bundles'
 /** البانر الترويجي الافتتاحي (Editorial) — الصورة والرابط قابلان للإدارة. */
 export function EditorialBanner() {
   const { t } = useI18n()
-  const [banner, setBanner] = useState<{ image: string; href: string } | null>(null)
+  const [banners, setBanners] = useState<Awaited<ReturnType<typeof bannerService.list>>>([])
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
 
   // بنر الإديتوريال المُدار من اللوحة. في الوضع البعيد لا يوجد رجوع تلقائي
   // للصورة الافتراضية حتى يختفي البانر فعلاً عند حذفه من اللوحة.
@@ -23,20 +25,94 @@ export function EditorialBanner() {
     if (!USE_REMOTE_API) return
     let cancelled = false
     void bannerService.list('EDITORIAL').then((banners) => {
-      const first = banners[0]
-      if (!cancelled && first) {
-        setBanner({ image: first.imageUrl, href: first.linkUrl || DEFAULT_HREF })
-      }
+      if (!cancelled) setBanners(banners)
     })
     return () => {
       cancelled = true
     }
   }, [])
 
-  const image = banner?.image ?? (USE_REMOTE_API ? '' : DEFAULT_IMAGE)
-  const href = banner?.href ?? DEFAULT_HREF
+  useEffect(() => {
+    if (!USE_REMOTE_API || paused || banners.length <= 1) return
+    const timer = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % banners.length)
+    }, 5000)
+    return () => window.clearInterval(timer)
+  }, [banners.length, paused])
 
-  if (!image) return null
+  if (USE_REMOTE_API) {
+    if (banners.length === 0) return null
+    return (
+      <section className="py-14 md:py-20" aria-label="بنرات العروض">
+        <div className="container-shelight">
+          <div
+            className="relative mx-auto aspect-[4/5] max-h-[560px] w-full max-w-6xl overflow-hidden rounded-xl bg-surface shadow-card md:aspect-[16/6]"
+            aria-roledescription="carousel"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+          >
+            {banners.map((banner, index) => {
+              const image = (
+                <picture className="absolute inset-0 block">
+                  {banner.mobileImageUrl && (
+                    <source media="(max-width: 767px)" srcSet={banner.mobileImageUrl} />
+                  )}
+                  <Image
+                    src={banner.imageUrl}
+                    alt="عروض ومنتجات SHE LIGHT"
+                    fill
+                    sizes="(min-width: 1280px) 1152px, 100vw"
+                    quality={90}
+                    className="object-cover"
+                  />
+                </picture>
+              )
+              const slide = banner.linkUrl ? (
+                <Link href={banner.linkUrl} className="absolute inset-0 block">
+                  {image}
+                </Link>
+              ) : (
+                image
+              )
+
+              return (
+                <div
+                  key={banner.id}
+                  aria-hidden={index !== activeIndex}
+                  className={`absolute inset-0 transition-opacity duration-700 ${
+                    index === activeIndex ? 'opacity-100' : 'pointer-events-none opacity-0'
+                  }`}
+                >
+                  {slide}
+                </div>
+              )
+            })}
+            {banners.length > 1 && (
+              <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2">
+                {banners.map((banner, index) => (
+                  <button
+                    key={banner.id}
+                    type="button"
+                    aria-label={`عرض البنر ${index + 1}`}
+                    aria-current={index === activeIndex}
+                    onClick={() => setActiveIndex(index)}
+                    className={`h-2.5 rounded-full shadow-sm transition-all ${
+                      index === activeIndex
+                        ? 'w-7 bg-white'
+                        : 'w-2.5 bg-white/60 hover:bg-white/90'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  const image = DEFAULT_IMAGE
+  const href = DEFAULT_HREF
 
   return (
     <section className="py-14 md:py-20" aria-label="Promotion">

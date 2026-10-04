@@ -6,7 +6,7 @@ export const config = {
   site: {
     name: 'SHE LIGHT',
     description: 'Premium Egyptian dermocosmetics brand',
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://shelight-eg.com',
     currency: 'EGP',
     locale: 'ar',
     currencySymbol: 'LE',

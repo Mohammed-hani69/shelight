@@ -13,14 +13,18 @@ import {
   CustomerReviews,
   InstagramSocial,
 } from '@/components/marketing'
+import { config } from '@/config/site'
 
 export const metadata: Metadata = {
-  title: 'Premium Dermocosmetics for Your Luminous Glow',
+  title: 'مستحضرات تجميل وعناية بالبشرة والشعر في مصر',
   description:
-    'Explore SHE LIGHT: a premium Egyptian dermocosmetics brand with clinically inspired skincare, haircare, eye care, nail care and kids care.',
+    'تسوقي منتجات شيلايت للعناية بالبشرة والشعر والجسم في مصر. اكتشفي الغسول والمرطبات والسيروم والزيوت الطبيعية وروتين يناسب نوع بشرتك.',
+  alternates: { canonical: '/' },
   openGraph: {
-    title: 'SHE LIGHT — Premium Dermocosmetics',
-    description: 'Clinically inspired beauty for a luminous you.',
+    title: 'شيلايت | منتجات العناية بالبشرة والشعر في مصر',
+    description: 'اكتشفي مستحضرات التجميل والعناية بالبشرة والشعر والجسم من SHE LIGHT.',
+    url: config.site.url,
+    images: [{ url: '/images/hero/hero-1.webp', alt: 'منتجات SHE LIGHT للعناية والجمال' }],
   },
 }
 

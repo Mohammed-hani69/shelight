@@ -725,6 +725,7 @@ class Banner(TimestampMixin, db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     section: Mapped[str] = mapped_column(String(20), default="HERO", nullable=False)
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    mobile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     link_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

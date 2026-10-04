@@ -319,6 +319,12 @@ export const adminApi = {
     return apiClient.get<Record<string, unknown>>(endpoints.admin.shipping.bosta)
   },
 
+  async getBostaOverview(page = 1, status?: string): Promise<BostaOverview> {
+    const query = new URLSearchParams({ page: String(page), page_size: '25' })
+    if (status) query.set('status', status)
+    return apiClient.get<BostaOverview>(`${endpoints.admin.shipping.bostaOverview}?${query}`)
+  },
+
   async saveBostaSettings(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     return apiClient.post<Record<string, unknown>>(endpoints.admin.shipping.bosta, payload)
   },
@@ -344,4 +350,43 @@ export const adminApi = {
 export function formatAmount(value: number | undefined | null): string {
   const number = typeof value === 'number' && Number.isFinite(value) ? value : 0
   return formatPrice(number)
+}
+
+export interface BostaOverview {
+  connection: {
+    enabled: boolean
+    apiConfigured: boolean
+    apiUrlConfigured: boolean
+    webhookConfigured: boolean
+  }
+  summary: {
+    shipmentCount: number
+    deliveredCount: number
+    inTransitCount: number
+    exceptionCount: number
+    deliveredOrderValue: number
+    codAwaitingPaymentUpdate: number
+  }
+  shipments: Array<{
+    orderNumber: string
+    shipmentId: string | null
+    trackingNumber: string | null
+    status: string | null
+    orderStatus: string
+    paymentMethod: string
+    paymentStatus: string
+    total: number
+    updatedAt: string | null
+    lastEvent: { stateCode: number | null; stateName: string | null; receivedAt: string | null } | null
+  }>
+  recentEvents: Array<{
+    trackingNumber: string | null
+    shipmentId: string | null
+    stateCode: number | null
+    stateName: string | null
+    status: string | null
+    outcome: string
+    receivedAt: string | null
+  }>
+  pagination: { page: number; pageSize: number; total: number; pages: number }
 }

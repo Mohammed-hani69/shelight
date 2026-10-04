@@ -36,6 +36,7 @@ def create_banner(data: dict) -> Banner:
     banner = Banner(
         section=data["section"],
         image_url=data["image_url"],
+        mobile_image_url=data.get("mobile_image_url"),
         link_url=data.get("link_url"),
         sort_order=data.get("sort_order", 0),
         is_active=data.get("is_active", True),
@@ -48,6 +49,7 @@ def create_banner(data: dict) -> Banner:
 def update_banner(banner: Banner, data: dict) -> Banner:
     for field, attr in [
         ("image_url", "image_url"),
+        ("mobile_image_url", "mobile_image_url"),
         ("sort_order", "sort_order"),
         ("is_active", "is_active"),
     ]:

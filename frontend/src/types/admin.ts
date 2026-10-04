@@ -159,6 +159,7 @@ export interface AdminBanner {
   id: string
   section: AdminBannerSection
   imageUrl: string
+  mobileImageUrl?: string | null
   linkUrl?: string | null
   sortOrder: number
   isActive: boolean
@@ -168,6 +169,7 @@ export interface AdminBanner {
 export interface AdminBannerWrite {
   section: AdminBannerSection
   imageUrl: string
+  mobileImageUrl?: string | null
   linkUrl?: string | null
   sortOrder?: number
   isActive?: boolean

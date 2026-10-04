@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   BarChart3,
@@ -9,6 +11,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   LogOut,
+  Menu,
   Newspaper,
   Package,
   Settings2,
@@ -16,6 +19,7 @@ import {
   Store,
   TicketPercent,
   Users,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -43,6 +47,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const customer = useAdminStore((s) => s.customer)
   const logout = useAdminStore((s) => s.logout)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -52,15 +57,36 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background print:bg-white">
-      <aside className="fixed inset-y-0 right-0 hidden w-64 flex-col border-l border-border bg-surface px-4 py-6 lg:flex print:hidden">
-        <div className="mb-8 flex items-center gap-2 px-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-plum text-cream">
-            <Store className="h-4 w-4" aria-hidden="true" />
-          </span>
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          aria-label="إغلاق القائمة"
+          className="fixed inset-0 z-30 bg-charcoal/40 lg:hidden print:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      <aside
+        id="admin-sidebar"
+        className={cn(
+          'fixed inset-y-0 right-0 z-40 flex w-[min(18rem,calc(100vw-2.5rem))] flex-col border-l border-border bg-surface px-4 py-6 transition-transform duration-200 lg:w-64 lg:translate-x-0 print:hidden',
+          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+        )}
+      >
+        <div className="mb-8 flex items-center justify-between gap-2 px-2">
           <div>
-            <p className="font-display text-lg font-semibold leading-none text-plum">SHE LIGHT</p>
+            <Image src="/images/logo.png" alt="SHE LIGHT" width={640} height={424} className="h-12 w-auto object-contain" />
             <p className="mt-1 text-xs text-muted">لوحة التحكم</p>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="mr-auto lg:hidden"
+            aria-label="إغلاق القائمة"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </Button>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1" aria-label="تنقل لوحة التحكم">
@@ -72,6 +98,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={href}
                 aria-current={isActive ? 'page' : undefined}
+                onClick={() => setMobileMenuOpen(false)}
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
                   isActive
@@ -89,6 +116,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="border-t border-border pt-4">
           <Link
             href="/"
+            onClick={() => setMobileMenuOpen(false)}
             className="mb-2 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-accent/60"
           >
             <Store className="h-4 w-4" aria-hidden="true" />
@@ -102,8 +130,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="lg:mr-64 print:mr-0">
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/90 px-6 py-4 backdrop-blur print:hidden">
-          <p className="text-sm text-muted">{customerFullName(customer)}</p>
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/90 px-4 py-3 backdrop-blur sm:px-6 sm:py-4 print:hidden">
+          <div className="flex min-w-0 items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 lg:hidden"
+              aria-label="فتح قائمة لوحة التحكم"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="admin-sidebar"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" aria-hidden="true" />
+            </Button>
+            <p className="truncate text-sm text-muted">{customerFullName(customer)}</p>
+          </div>
           <div className="flex items-center gap-3">
             <span className="hidden rounded-full bg-accent/70 px-3 py-1 text-xs font-medium text-accent-foreground sm:inline">
               {customer?.email}
