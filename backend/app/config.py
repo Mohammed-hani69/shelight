@@ -94,14 +94,7 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
-        """يتحقق عند الاستخدام لا عند الاستيراد — حتى لا يكسر استيراد config."""
-        value = os.getenv("DATABASE_URL")
-        if not value:
-            raise RuntimeError("DATABASE_URL مطلوب في بيئة الإنتاج")
-        return value
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "")
 
 
 def validate_production_secrets() -> None:
@@ -110,6 +103,10 @@ def validate_production_secrets() -> None:
     `from_object` لا ينشئ نسخة من الأصناف، لذا الفحص يجري صريحاً عند
     الإقلاع بدل الاعتماد على `__init__`.
     """
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL مطلوب في بيئة الإنتاج")
+    
     for name, development_default in (
         ("SECRET_KEY", "shelight-dev-secret-key-0123456789"),
         ("JWT_SECRET_KEY", "shelight-dev-jwt-secret-key-0123456789"),
