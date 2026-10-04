@@ -1,0 +1,18 @@
+{
+  "name": "she-light",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SHE LIGHT — premium cosmetics e-commerce platform (Next.js frontend + Flask backend)",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --workspace frontend run dev",
+    "build:frontend": "npm --workspace frontend run build",
+    "lint:frontend": "npm --workspace frontend run lint",
+    "typecheck:frontend": "npm --workspace frontend run typecheck"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
