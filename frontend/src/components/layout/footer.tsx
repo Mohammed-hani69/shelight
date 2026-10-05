@@ -157,8 +157,8 @@ export function Footer() {
       </div>
 
       {/* الأعمدة */}
-      <div className="container-shelight grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-5">
-        <div>
+      <div className="container-shelight grid grid-cols-2 gap-x-6 gap-y-10 py-12 lg:grid-cols-5 lg:gap-10">
+        <div className="col-span-2 lg:col-span-1">
           <Link href="/" className="mb-4 inline-flex items-center" aria-label="SHE LIGHT">
             <Image src="/images/logo.png" alt="SHE LIGHT" width={640} height={424} className="h-16 w-auto object-contain" />
           </Link>
