@@ -309,6 +309,25 @@ export const adminApi = {
     return apiClient.get<AdminVisitorTimeline>(endpoints.admin.analytics.visitorTimeline(id))
   },
 
+  async reviewOverview(): Promise<ReviewOverview> {
+    return apiClient.get<ReviewOverview>(endpoints.admin.reviewOverview)
+  },
+
+  async listReviews(options: { page?: number; published?: boolean | null; productId?: string } = {}): Promise<Paged<AdminReview[]>> {
+    const query = new URLSearchParams()
+    if (options.page) query.set('page', String(options.page))
+    if (options.published !== undefined && options.published !== null) {
+      query.set('published', String(options.published))
+    }
+    if (options.productId) query.set('product_id', options.productId)
+    const suffix = query.size ? `?${query.toString()}` : ''
+    return apiClient.getWithMeta<AdminReview[], BackendMeta>(`${endpoints.admin.reviews}${suffix}`)
+  },
+
+  async moderateReview(id: string, isPublished: boolean): Promise<{ id: string; isPublished: boolean }> {
+    return apiClient.patch<{ id: string; isPublished: boolean }>(endpoints.admin.review(id), { isPublished })
+  },
+
   /** تشغيل يدوي لفحص السلال المتروكة — idempotent. */
   async runAbandonment(): Promise<{ abandoned: number }> {
     return apiClient.post<{ abandoned: number }>(endpoints.admin.analytics.runAbandonment)
@@ -350,6 +369,36 @@ export const adminApi = {
 export function formatAmount(value: number | undefined | null): string {
   const number = typeof value === 'number' && Number.isFinite(value) ? value : 0
   return formatPrice(number)
+}
+
+export interface ReviewOverview {
+  totalReviews: number
+  publishedReviews: number
+  pendingReviews: number
+  averageRating: number
+  distribution: Record<string, number>
+  products: Array<{
+    productId: string
+    slug: string
+    name: string
+    averageRating: number
+    reviewCount: number
+  }>
+}
+
+export interface AdminReview {
+  id: string
+  productId: string
+  productName: string
+  productSlug: string
+  authorName: string
+  rating: number
+  title: string
+  body: string
+  isVerified: boolean
+  helpfulCount: number
+  createdAt: string | null
+  isPublished: boolean
 }
 
 export interface BostaOverview {

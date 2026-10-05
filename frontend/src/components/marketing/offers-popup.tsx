@@ -2,9 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { BadgePercent, Sparkles } from 'lucide-react'
+import { BadgePercent, ChevronLeft, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { MediaImage } from '@/components/common/media-image'
 import { marketingSectionsService, type PublicOfferPopup } from '@/features/marketing-sections/marketing-sections-service'
 import { discountPercent, formatPrice } from '@/lib/utils/format-price'
@@ -46,60 +45,76 @@ export function OffersPopup() {
 
   if (!section) return null
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-h-[88svh] max-w-3xl overflow-y-auto p-0">
-        <div className="border-b border-border bg-accent/20 px-5 py-6 text-center sm:px-8">
-          <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Sparkles className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <DialogHeader className="text-center">
-            <DialogTitle className="text-xl text-plum sm:text-2xl">{section.title}</DialogTitle>
-            <DialogDescription>{section.description}</DialogDescription>
-          </DialogHeader>
+    <aside
+      aria-label="عروض المنتجات"
+      className="fixed bottom-[calc(var(--app-bar-height)+1rem)] left-3 z-40 w-[min(21rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-card sm:bottom-5 sm:left-5"
+    >
+      <div className="flex items-start gap-3 border-b border-border bg-accent/20 px-3 py-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Sparkles className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-sm font-semibold text-plum">{section.title}</h2>
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted">{section.description}</p>
         </div>
+        <button
+          type="button"
+          aria-label="إغلاق العروض"
+          onClick={() => setOpen(false)}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-plum"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
 
-        <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
-          {section.products.map((product) => {
-            const compareAtPrice = product.compareAtPrice ?? product.price
-            const discount = discountPercent(compareAtPrice, product.price)
-            return (
-              <article key={product.id} className="overflow-hidden rounded-md border border-border bg-surface">
-                <Link href={`/products/${product.slug}`} onClick={() => setOpen(false)} className="block">
-                  <div className="relative aspect-[4/3] bg-background">
-                    {product.images[0]?.url && (
-                      <MediaImage
-                        src={product.images[0].url}
-                        alt={product.images[0].alt || product.name}
-                        fill
-                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
-                        className="object-contain p-3"
-                      />
-                    )}
-                    <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-danger px-2 py-1 text-xs font-semibold text-white">
-                      <BadgePercent className="h-3.5 w-3.5" aria-hidden="true" />
-                      خصم {discount}%
-                    </span>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="line-clamp-2 min-h-10 text-sm font-medium text-charcoal">{product.name}</h3>
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <span className="font-semibold text-primary-dark">{formatPrice(product.price)}</span>
-                      <s className="text-xs text-muted">{formatPrice(compareAtPrice)}</s>
-                    </div>
-                  </div>
-                </Link>
-              </article>
-            )
-          })}
-        </div>
+      <div className="max-h-56 divide-y divide-border overflow-y-auto px-3">
+        {section.products.slice(0, 2).map((product) => {
+          const compareAtPrice = product.compareAtPrice ?? product.price
+          const discount = discountPercent(compareAtPrice, product.price)
+          return (
+            <Link
+              key={product.id}
+              href={`/products/${product.slug}`}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 py-3"
+            >
+              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-background">
+                {product.images[0]?.url && (
+                  <MediaImage
+                    src={product.images[0].url}
+                    alt={product.images[0].alt || product.name}
+                    fill
+                    sizes="56px"
+                    className="object-contain p-1"
+                  />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-charcoal">{product.name}</span>
+                <span className="mt-1 flex items-center gap-2 text-xs">
+                  <span className="font-semibold text-primary-dark">{formatPrice(product.price)}</span>
+                  <s className="text-muted">{formatPrice(compareAtPrice)}</s>
+                </span>
+              </span>
+              <span className="shrink-0 text-xs font-semibold text-danger">
+                <BadgePercent className="inline h-3.5 w-3.5" aria-hidden="true" /> {discount}%
+              </span>
+            </Link>
+          )
+        })}
+      </div>
 
-        <div className="flex justify-center border-t border-border px-5 py-4">
-          <Button asChild variant="outline" onClick={() => setOpen(false)}>
-            <Link href="/shop">تسوّقي كل المنتجات</Link>
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      <div className="border-t border-border px-3 py-2">
+        <Button asChild variant="link" size="sm" className="h-8 w-full justify-between px-1">
+          <Link href="/shop" onClick={() => setOpen(false)}>
+            تسوّقي كل العروض
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </Button>
+      </div>
+    </aside>
   )
 }
