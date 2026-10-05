@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 import { SectionHeading } from '@/components/marketing/section-heading'
+import { MobileCarousel } from '@/components/marketing/mobile-carousel'
 import { reviewService } from '@/services/review-service'
 import type { ClientReview } from '@/types/reviews'
 import { cn } from '@/lib/utils/cn'
@@ -44,7 +45,10 @@ export function CustomerReviews() {
           </div>
           <span className="text-sm text-muted">{t.marketing.ratingsSummary}</span>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <MobileCarousel
+          label={t.marketing.reviewsTitle}
+          desktopClassName="md:grid-cols-2 lg:grid-cols-4"
+        >
           {reviews.map((review, i) => (
             <figure
               key={review.id}
@@ -77,7 +81,7 @@ export function CustomerReviews() {
               </figcaption>
             </figure>
           ))}
-        </div>
+        </MobileCarousel>
       </div>
     </section>
   )

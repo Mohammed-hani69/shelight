@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Quote, BadgeCheck } from 'lucide-react'
 import { SectionHeading } from '@/components/marketing/section-heading'
+import { MobileCarousel } from '@/components/marketing/mobile-carousel'
 import { reviewService } from '@/services/review-service'
 import type { DoctorReview } from '@/types/reviews'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -36,7 +37,7 @@ export function DoctorReviews() {
           title={t.marketing.doctorTitle}
           subtitle={t.marketing.doctorSub}
         />
-        <div className="grid gap-5 md:grid-cols-3">
+        <MobileCarousel label={t.marketing.doctorTitle} desktopClassName="md:grid-cols-3">
           {reviews.map((review) => (
             <figure
               key={review.id}
@@ -60,7 +61,7 @@ export function DoctorReviews() {
               </figcaption>
             </figure>
           ))}
-        </div>
+        </MobileCarousel>
       </div>
     </section>
   )

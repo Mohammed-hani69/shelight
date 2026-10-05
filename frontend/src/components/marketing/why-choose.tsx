@@ -2,6 +2,7 @@
 
 import { FlaskConical, Leaf, ShieldCheck, Truck, Sparkles, HeartPulse } from 'lucide-react'
 import { SectionHeading } from '@/components/marketing/section-heading'
+import { MobileCarousel } from '@/components/marketing/mobile-carousel'
 import { useI18n } from '@/lib/i18n/use-i18n'
 
 export function WhyChoose() {
@@ -25,7 +26,11 @@ export function WhyChoose() {
           subtitle={t.marketing.whySub}
           tone="dark"
         />
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <MobileCarousel
+          label={t.marketing.whyTitle}
+          desktopClassName="md:grid-cols-2 lg:grid-cols-3"
+          dark
+        >
           {reasons.map(({ Icon, title, text }) => (
             <div key={title} className="flex flex-col items-center gap-3 text-center">
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-cream/10 text-accent">
@@ -35,7 +40,7 @@ export function WhyChoose() {
               <p className="max-w-xs text-sm text-cream/75">{text}</p>
             </div>
           ))}
-        </div>
+        </MobileCarousel>
       </div>
     </section>
   )

@@ -131,6 +131,15 @@
   animation: site-splash-progress 1.1s ease-in-out both;
 }
 
+.mobile-carousel-track {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
 /* ------------------------------------------------------------
    Base styles
    ------------------------------------------------------------ */
