@@ -731,6 +731,18 @@ class Banner(TimestampMixin, db.Model):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
+class StorefrontSection(TimestampMixin, db.Model):
+    """قسم واجهة قابل للإدارة بمحتوى مرن لتوسعة أقسام المتجر لاحقاً."""
+
+    __tablename__ = "storefront_sections"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    section_key: Mapped[str] = mapped_column(String(80), unique=True, nullable=False, index=True)
+    section_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    content: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
 # ---------------------------------------------------------------------------
 # أحداث الـ webhooks الواردة من مزوّدي الشحن
 # ---------------------------------------------------------------------------

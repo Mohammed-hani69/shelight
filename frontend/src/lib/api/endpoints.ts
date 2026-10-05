@@ -53,6 +53,9 @@ export const endpoints = {
   banners: {
     list: '/banners',
   },
+  storefrontSections: {
+    section: (key: string) => `/storefront/sections/${encodeURIComponent(key)}`,
+  },
   orders: {
     list: '/orders',
     checkout: '/orders/checkout',
@@ -82,6 +85,7 @@ export const endpoints = {
     journal: '/admin/journal',
     article: (id: string) => `/admin/journal/${id}`,
     banners: '/admin/banners',
+    storefrontSection: (key: string) => `/admin/storefront/sections/${encodeURIComponent(key)}`,
     banner: (id: string) => `/admin/banners/${id}`,
     moveBanner: (id: string) => `/admin/banners/${id}/move`,
     uploadBanner: '/admin/banners/upload',

@@ -171,6 +171,16 @@ export const useCartStore = create<CartState>()(
     {
       name: 'shelight-cart',
       partialize: (state) => ({ items: state.items, couponCode: state.couponCode }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<CartState> | undefined
+        const items = persisted?.items ?? currentState.items
+        return {
+          ...currentState,
+          ...persisted,
+          items,
+          calculations: compute(items),
+        }
+      },
     }
   )
 )

@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/cart/cart-drawer'
 import { SearchDialog } from '@/components/navigation/search-dialog'
 import { SiteSplash } from '@/components/layout/site-splash'
+import { OffersPopup } from '@/components/marketing/offers-popup'
 
 interface StorefrontShellProps {
   children: React.ReactNode
@@ -26,6 +27,7 @@ export function StorefrontShell({ children }: StorefrontShellProps) {
       <CartDrawer />
       <SearchDialog />
       <MobileAppBar />
+      <OffersPopup />
     </div>
   )
 }
