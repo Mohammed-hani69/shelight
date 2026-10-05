@@ -164,7 +164,7 @@ export function mapCategory(node: BackendCategoryNode): Category {
     isActive: node.isActive ?? true,
     sortOrder: typeof node.sortOrder === 'number' ? node.sortOrder : undefined,
     description: node.description ?? undefined,
-    image: node.image ?? undefined,
+    image: node.image ? resolveMediaUrl(node.image) : undefined,
     products: [],
     children: Array.isArray(node.children) ? node.children.map(mapCategory) : undefined,
   }

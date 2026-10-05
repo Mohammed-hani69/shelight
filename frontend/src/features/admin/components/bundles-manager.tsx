@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { AdminImageUpload } from '@/features/admin/components/admin-image-upload'
 import {
   Dialog,
   DialogContent,
@@ -92,6 +93,7 @@ export function BundlesManager() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [imageUploading, setImageUploading] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [editing, setEditing] = useState<AdminBundle | null>(null)
   const [formOpen, setFormOpen] = useState(false)
@@ -389,7 +391,7 @@ export function BundlesManager() {
                             // روابط خارجية يكتبها المدير — لا نقيّدها بالنطاقات المعتمدة
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={bundle.imageUrl}
+                              src={resolveMediaUrl(bundle.imageUrl)}
                               alt=""
                               className="h-11 w-11 shrink-0 rounded-md object-cover"
                             />
@@ -513,8 +515,8 @@ export function BundlesManager() {
       )}
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
-          <DialogHeader className="shrink-0 border-b border-border py-5 pl-6 pr-12 text-right sm:text-right">
+        <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-3xl flex-col gap-0 overflow-hidden rounded-lg p-0 sm:max-h-[90vh]">
+          <DialogHeader className="shrink-0 border-b border-border py-4 pl-4 pr-12 text-right sm:px-6 sm:py-5 sm:text-right">
             <DialogTitle className="text-xl">{editing ? 'تعديل باقة' : 'باقة جديدة'}</DialogTitle>
             <DialogDescription>
               {editing
@@ -523,7 +525,7 @@ export function BundlesManager() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="b-name-ar">الاسم بالعربية</Label>
@@ -571,16 +573,13 @@ export function BundlesManager() {
                   onChange={(e) => setForm((prev) => ({ ...prev, badgeEn: e.target.value }))}
                 />
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="b-image">رابط الصورة (اختياري)</Label>
-                <Input
-                  id="b-image"
-                  dir="ltr"
-                  placeholder="https://…"
-                  value={form.imageUrl}
-                  onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                />
-              </div>
+              <AdminImageUpload
+                id="b-image"
+                label="صورة الباقة (اختياري)"
+                value={form.imageUrl}
+                onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
+                onUploadingChange={setImageUploading}
+              />
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="b-desc-ar">الوصف بالعربية (اختياري)</Label>
                 <Textarea
@@ -631,7 +630,7 @@ export function BundlesManager() {
                     return (
                       <li
                         key={index}
-                        className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5"
+                        className="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-border bg-surface p-2.5 sm:flex sm:gap-3"
                       >
                         <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted/40">
                           {thumbnail ? (
@@ -679,13 +678,14 @@ export function BundlesManager() {
                             <Plus className="h-4 w-4" aria-hidden="true" />
                           </button>
                         </div>
-                        <span className="w-20 shrink-0 text-left text-sm font-semibold text-charcoal">
+                        <span className="col-start-2 text-right text-sm font-semibold text-charcoal sm:ml-auto sm:w-20 sm:shrink-0 sm:text-left">
                           {formatAmount(lineTotal)}
                         </span>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
+                          className="col-start-3 row-start-2 sm:row-auto"
                           aria-label="إزالة المنتج"
                           onClick={() => removeItem(index)}
                         >
@@ -817,9 +817,9 @@ export function BundlesManager() {
 
             </div>
 
-            <div className="border-t border-border bg-muted/30 px-6 py-4">
+            <div className="shrink-0 border-t border-border bg-muted/30 px-4 py-3 sm:px-6 sm:py-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm">
                   <span className="text-muted">
                     مجموع المنفرد:{' '}
                     <b className="font-semibold text-charcoal">{formatAmount(memberTotal)}</b>
@@ -838,7 +838,7 @@ export function BundlesManager() {
                   <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
                     إلغاء
                   </Button>
-                  <Button type="submit" disabled={saving}>
+                  <Button type="submit" disabled={saving || imageUploading}>
                     {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                     {editing ? 'حفظ التعديلات' : 'إنشاء الباقة'}
                   </Button>

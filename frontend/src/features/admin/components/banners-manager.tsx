@@ -378,14 +378,15 @@ export function BannersManager() {
       )}
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-lg p-0 sm:max-h-[90vh]">
+          <DialogHeader className="shrink-0 border-b border-border py-4 pl-4 pr-12 text-right sm:px-6 sm:py-5 sm:text-right">
             <DialogTitle>{editing ? 'تعديل بنر' : 'بنر جديد'}</DialogTitle>
             <DialogDescription>
               ارفع صورة للكمبيوتر وأخرى للموبايل، ثم حدّد رابط الوجهة عند الضغط عليها.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-6">
             <div className="space-y-1.5">
               <Label htmlFor="banner-section">القسم</Label>
               <select
@@ -410,24 +411,13 @@ export function BannersManager() {
                 ['desktop', 'صورة الكمبيوتر', form.imageUrl, desktopFileInput],
                 ['mobile', 'صورة الموبايل', form.mobileImageUrl, mobileFileInput],
               ] as const).map(([target, label, imageUrl, inputRef]) => (
-                <div key={target} className="space-y-1.5">
+                <div key={target} className="min-w-0 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
                   <Label htmlFor={`banner-${target}-image`}>{label}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id={`banner-${target}-image`}
-                      dir="ltr"
-                      placeholder="ارفع صورة لهذا الجهاز"
-                      value={imageUrl}
-                      onChange={(e) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          [target === 'desktop' ? 'imageUrl' : 'mobileImageUrl']: e.target.value,
-                        }))
-                      }
-                    />
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       type="button"
                       variant="outline"
+                      className="min-h-11 flex-1 sm:flex-none"
                       disabled={uploading !== null}
                       onClick={() => inputRef.current?.click()}
                     >
@@ -436,13 +426,27 @@ export function BannersManager() {
                       ) : (
                         <Upload className="h-4 w-4" aria-hidden="true" />
                       )}
-                      رفع
+                      {imageUrl ? 'تغيير الصورة' : 'اختيار صورة'}
                     </Button>
+                    {imageUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="min-h-11"
+                        onClick={() => setForm((prev) => ({
+                          ...prev,
+                          [target === 'desktop' ? 'imageUrl' : 'mobileImageUrl']: '',
+                        }))}
+                      >
+                        إزالة
+                      </Button>
+                    )}
                     <input
+                      id={`banner-${target}-image`}
                       ref={inputRef}
                       type="file"
                       accept="image/*"
-                      className="hidden"
+                      className="sr-only"
                       onChange={(event) => void handleFile(target, event)}
                     />
                   </div>
@@ -450,10 +454,11 @@ export function BannersManager() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={resolveMediaUrl(imageUrl)}
-                      alt=""
-                      className="mt-2 h-28 w-full rounded-md border border-border object-cover"
+                      alt={`معاينة ${label}`}
+                      className={cn('w-full rounded-md border border-border bg-surface object-cover', target === 'mobile' ? 'mx-auto aspect-[4/5] max-h-56 max-w-40' : 'aspect-[16/7] max-h-40')}
                     />
                   )}
+                  {!imageUrl && <div className={cn('flex items-center justify-center rounded-md border border-dashed border-border bg-surface text-xs text-muted', target === 'mobile' ? 'mx-auto aspect-[4/5] w-32' : 'aspect-[16/7]')}><ImageIcon className="me-2 h-4 w-4" aria-hidden="true" />لا توجد صورة</div>}
                 </div>
               ))}
             </div>
@@ -490,7 +495,8 @@ export function BannersManager() {
               </label>
             </div>
 
-            <DialogFooter>
+            </div>
+            <DialogFooter className="shrink-0 border-t border-border bg-muted/30 px-4 py-3 sm:px-6 sm:py-4">
               <Button type="submit" disabled={saving || uploading !== null}>
                 {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 {editing ? 'حفظ' : 'إضافة'}

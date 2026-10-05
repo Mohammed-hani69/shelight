@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { Button } from '@/components/ui/button'
 import { ProductRating } from '@/components/product/product-rating'
@@ -51,7 +51,7 @@ export function RoutineBundles() {
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 {bundle.image && (
-                  <Image
+                  <MediaImage
                     src={bundle.image}
                     alt={bundle.name}
                     fill

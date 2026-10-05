@@ -103,6 +103,16 @@ describe('mapCategory', () => {
     expect(category.products).toEqual([])
     expect(category.children?.[0].name).toBe('سيرومات')
   })
+
+  it('يحلّ مسار صورة مرفوعة على نطاق الـ API', () => {
+    const category = mapCategory({
+      id: '1',
+      slug: 'skin-care',
+      name: 'العناية بالبشرة',
+      image: '/uploads/products/category.jpg',
+    })
+    expect(category.image).toMatch(/^https?:\/\/.+\/uploads\/products\/category\.jpg$/)
+  })
 })
 
 describe('withLang', () => {

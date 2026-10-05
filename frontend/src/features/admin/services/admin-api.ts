@@ -122,6 +122,10 @@ export const adminApi = {
     return apiClient.patch<AdminOrder>(endpoints.admin.order(orderNumber), payload)
   },
 
+  async deleteOrder(orderNumber: string): Promise<void> {
+    await apiClient.delete(endpoints.admin.order(orderNumber))
+  },
+
   //----- كوبونات -----
   async listCoupons(): Promise<AdminCoupon[]> {
     return apiClient.get<AdminCoupon[]>(endpoints.admin.coupons)
@@ -147,6 +151,10 @@ export const adminApi = {
 
   async updateCustomer(id: string, payload: { isActive?: boolean; loyaltyPoints?: number }): Promise<AdminCustomer> {
     return apiClient.patch<AdminCustomer>(endpoints.admin.customer(id), payload)
+  },
+
+  async deleteCustomer(id: string): Promise<void> {
+    await apiClient.delete(endpoints.admin.customer(id))
   },
 
   //----- فئات / أقسام -----

@@ -52,7 +52,7 @@ export function ReviewsManager() {
   }
 
   useEffect(() => {
-    void load(1, 'all')
+    void Promise.resolve().then(() => load(1, 'all'))
     // Initial request only. Filters and pagination invoke load directly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -81,7 +81,7 @@ export function ReviewsManager() {
     <div className="space-y-6">
       {error && <ErrorState message={error} onRetry={() => void load(page, filter)} />}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 xl:grid-cols-5">
         <Metric label="كل التقييمات" value={overview?.totalReviews ?? 0} icon={MessageSquareText} />
         <Metric label="متوسط التقييم المنشور" value={`${(overview?.averageRating ?? 0).toFixed(1)} / 5`} icon={Star} />
         <Metric label="تقييمات منشورة" value={overview?.publishedReviews ?? 0} icon={CheckCircle2} />
@@ -90,7 +90,7 @@ export function ReviewsManager() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <div className="rounded-lg border border-border bg-surface p-5">
+        <div className="rounded-lg border border-border bg-surface p-4 sm:p-5">
           <div className="mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />
             <h2 className="font-display text-lg font-semibold text-plum">توزيع التقييمات</h2>
@@ -113,7 +113,7 @@ export function ReviewsManager() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-surface p-5">
+        <div className="rounded-lg border border-border bg-surface p-4 sm:p-5">
           <h2 className="mb-4 font-display text-lg font-semibold text-plum">المنتجات الأعلى تقييمًا</h2>
           {!overview?.products.length ? (
             <p className="py-8 text-center text-sm text-muted">لا توجد تقييمات منشورة كافية للتحليل.</p>
@@ -140,7 +140,7 @@ export function ReviewsManager() {
             </div>
           )}
         </div>
-        <div className="rounded-lg border border-border bg-surface p-5 lg:col-span-2">
+        <div className="rounded-lg border border-border bg-surface p-4 sm:p-5 lg:col-span-2">
           <h2 className="mb-4 font-display text-lg font-semibold text-plum">المنتجات التي تحتاج اهتمامًا</h2>
           {!overview?.products.length ? (
             <p className="py-6 text-center text-sm text-muted">لا توجد بيانات تقييمات بعد.</p>
@@ -170,16 +170,16 @@ export function ReviewsManager() {
       </section>
 
       <section className="overflow-hidden rounded-lg border border-border bg-surface">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+        <div className="flex flex-col gap-3 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div>
             <h2 className="font-display text-lg font-semibold text-plum">تقييمات العملاء</h2>
-                  <p className="mt-1 text-xs text-muted">تحكّم بشكل مستقل في ظهور التقييم تحت المنتج وإبرازه بالرئيسية.</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">تحكّم بشكل مستقل في ظهور التقييم تحت المنتج وإبرازه بالرئيسية.</p>
           </div>
           <select
             value={filter}
             aria-label="فلترة التقييمات حسب حالة النشر"
             onChange={(event) => void load(1, event.target.value as typeof filter)}
-            className="h-10 rounded-md border border-border bg-background px-3 text-sm"
+            className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm sm:w-auto"
           >
             <option value="all">كل التقييمات</option>
             <option value="published">منشورة</option>
@@ -194,7 +194,7 @@ export function ReviewsManager() {
         ) : (
           <ul className="divide-y divide-border">
             {reviews.map((review) => (
-              <li key={review.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+              <li key={review.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-start sm:justify-between sm:p-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-sm text-plum">{review.authorName}</strong>
@@ -208,12 +208,12 @@ export function ReviewsManager() {
                   {review.title && <h3 className="mt-1 text-sm font-medium text-charcoal">{review.title}</h3>}
                   <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-muted">{review.body}</p>
                 </div>
-                <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
-                  <Button type="button" variant="outline" size="sm" disabled={busyId === review.id} onClick={() => void moderate(review, 'publish')}>
+                <div className="flex w-full shrink-0 flex-col items-stretch gap-3 border-t border-border/70 pt-3 sm:w-auto sm:items-end sm:border-0 sm:pt-0">
+                  <Button type="button" variant="outline" size="sm" className="min-h-11 w-full sm:w-auto" disabled={busyId === review.id} onClick={() => void moderate(review, 'publish')}>
                     {busyId === review.id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : review.isPublished ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                     {review.isPublished ? 'إخفاء من المنتج' : 'نشر تحت المنتج'}
                   </Button>
-                  <label className="flex items-center gap-2 text-xs text-muted">
+                  <label className="flex min-h-11 items-center gap-2 text-xs leading-relaxed text-muted sm:min-h-0">
                     <Checkbox
                       checked={review.showOnHome}
                       disabled={!review.isPublished || busyId === review.id}
@@ -228,11 +228,11 @@ export function ReviewsManager() {
         )}
 
         {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border px-4 py-3 text-sm">
+          <div className="flex flex-col gap-3 border-t border-border px-3 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
             <span className="text-xs text-muted">صفحة {meta.page} من {meta.totalPages} · {meta.total} تقييم</span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => void load(page - 1, filter)}>السابق</Button>
-              <Button variant="outline" size="sm" disabled={page >= meta.totalPages || loading} onClick={() => void load(page + 1, filter)}>التالي</Button>
+              <Button className="min-h-11 flex-1 sm:flex-none" variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => void load(page - 1, filter)}>السابق</Button>
+              <Button className="min-h-11 flex-1 sm:flex-none" variant="outline" size="sm" disabled={page >= meta.totalPages || loading} onClick={() => void load(page + 1, filter)}>التالي</Button>
             </div>
           </div>
         )}
@@ -243,9 +243,9 @@ export function ReviewsManager() {
 
 function Metric({ label, value, icon: Icon }: { label: string; value: string | number; icon: typeof Star }) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
-      <div className="flex items-center gap-2 text-muted"><Icon className="h-4 w-4" aria-hidden="true" /><span className="text-xs">{label}</span></div>
-      <p className="mt-3 text-2xl font-semibold text-charcoal">{value}</p>
+    <div className="min-w-0 rounded-lg border border-border bg-surface p-3 sm:p-4">
+      <div className="flex items-start gap-1.5 text-muted sm:items-center sm:gap-2"><Icon className="mt-0.5 h-4 w-4 shrink-0 sm:mt-0" aria-hidden="true" /><span className="text-[11px] leading-snug sm:text-xs">{label}</span></div>
+      <p className="mt-2 break-words text-xl font-semibold text-charcoal sm:mt-3 sm:text-2xl">{value}</p>
     </div>
   )
 }

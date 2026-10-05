@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, Users } from 'lucide-react'
+import { Search, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +20,7 @@ export function CustomersTable() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pointsInput, setPointsInput] = useState<Record<string, string>>({})
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const load = async (term = query) => {
     setLoading(true)
@@ -89,6 +90,21 @@ export function CustomersTable() {
     }
   }
 
+  const deleteCustomer = async (customer: AdminCustomer) => {
+    const name = customerName(customer)
+    if (!confirm(`حذف العميل «${name}» نهائياً؟ ستبقى طلباته محفوظة دون ارتباط بحسابه.`)) return
+    setDeletingId(customer.id)
+    try {
+      await adminApi.deleteCustomer(customer.id)
+      setItems((prev) => prev.filter((item) => item.id !== customer.id))
+      toast.success('تم حذف العميل مع الاحتفاظ بسجل طلباته')
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const customerName = (customer: AdminCustomer) =>
     [customer.firstName, customer.lastName].filter(Boolean).join(' ') || customer.email || customer.phone || 'عميل'
 
@@ -129,6 +145,7 @@ export function CustomersTable() {
                   <th className="px-4 py-3 font-medium">نقاط الولاء</th>
                   <th className="px-4 py-3 font-medium">الدور</th>
                   <th className="px-4 py-3 font-medium">الحالة</th>
+                  <th className="px-4 py-3 font-medium">إجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,6 +196,18 @@ export function CustomersTable() {
                       >
                         {customer.isActive ? 'نشط' : 'موقوف'}
                       </button>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`حذف العميل ${customerName(customer)}`}
+                        title="حذف العميل"
+                        disabled={customer.isAdmin || deletingId === customer.id}
+                        onClick={() => void deleteCustomer(customer)}
+                      >
+                        <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />
+                      </Button>
                     </td>
                   </tr>
                 ))}

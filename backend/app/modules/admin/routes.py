@@ -217,6 +217,15 @@ def update_order(order_number: str):
     return jsonify({"data": OrderAdminOut().dump(order)})
 
 
+@bp.delete("/orders/<order_number>")
+@admin_required()
+def delete_order(order_number: str):
+    order = admin_service.get_order(order_number)
+    db.session.delete(order)
+    db.session.commit()
+    return jsonify({"data": {"orderNumber": order_number}})
+
+
 # ---------------------------------------------------------------------------
 # الكوبونات
 # ---------------------------------------------------------------------------
@@ -285,6 +294,19 @@ def update_customer(customer_id: int):
     payload["isAdmin"] = updated.is_admin
     payload["isActive"] = updated.is_active
     return jsonify({"data": payload})
+
+
+@bp.delete("/customers/<int:customer_id>")
+@admin_required()
+def delete_customer(customer_id: int):
+    customer = db.session.get(Customer, customer_id)
+    if customer is None:
+        raise ApiError("العميل غير موجود", status_code=404)
+    if customer.is_admin:
+        raise ApiError("لا يمكن حذف حساب مدير", status_code=409)
+    db.session.delete(customer)
+    db.session.commit()
+    return jsonify({"data": {"id": customer_id}})
 
 
 # ---------------------------------------------------------------------------

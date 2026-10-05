@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Package, Eye } from 'lucide-react'
+import { Package, Eye, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/features/admin/components/error-state'
@@ -44,6 +44,7 @@ export function OrdersTable() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const load = async (status = statusFilter) => {
     setLoading(true)
@@ -93,6 +94,20 @@ export function OrdersTable() {
       void load()
     } finally {
       setUpdating(false)
+    }
+  }
+
+  const deleteOrder = async (order: AdminOrder) => {
+    if (!confirm(`حذف الطلب ${order.orderNumber} نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`)) return
+    setDeletingId(order.id)
+    try {
+      await adminApi.deleteOrder(order.orderNumber)
+      setItems((prev) => prev.filter((item) => item.id !== order.id))
+      toast.success('تم حذف الطلب')
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -215,6 +230,16 @@ export function OrdersTable() {
                             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                             التفاصيل
                           </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`حذف الطلب ${order.orderNumber}`}
+                          title="حذف الطلب"
+                          disabled={deletingId === order.id}
+                          onClick={() => void deleteOrder(order)}
+                        >
+                          {deletingId === order.id ? <span className="text-xs">…</span> : <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />}
                         </Button>
                       </td>
                     </tr>

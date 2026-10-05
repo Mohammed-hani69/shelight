@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { AdminImageUpload } from '@/features/admin/components/admin-image-upload'
+import { resolveMediaUrl } from '@/lib/api/media'
 import {
   Dialog,
   DialogContent,
@@ -94,6 +96,7 @@ export function CategoriesManager() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [imageUploading, setImageUploading] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [editing, setEditing] = useState<AdminCategory | null>(null)
   const [formOpen, setFormOpen] = useState(false)
@@ -316,7 +319,7 @@ export function CategoriesManager() {
                           // روابط خارجية يكتبها المدير — لا نقيّدها بالنطاقات المعتمدة
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={category.imageUrl}
+                            src={resolveMediaUrl(category.imageUrl)}
                             alt=""
                             className="h-10 w-10 rounded-md object-cover"
                           />
@@ -421,8 +424,8 @@ export function CategoriesManager() {
       )}
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-lg p-0 sm:max-h-[90vh]">
+          <DialogHeader className="shrink-0 border-b border-border py-4 pl-4 pr-12 text-right sm:px-6 sm:py-5 sm:text-right">
             <DialogTitle>{editing ? 'تعديل قسم' : 'قسم جديد'}</DialogTitle>
             <DialogDescription>
               {editing
@@ -430,7 +433,8 @@ export function CategoriesManager() {
                 : 'أنشئ قسماً جديداً ليظهر في أقسام الموقع ويُدار من هنا.'}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="cat-name-ar">الاسم بالعربية</Label>
@@ -486,16 +490,13 @@ export function CategoriesManager() {
                   onChange={(e) => setForm((prev) => ({ ...prev, sortOrder: e.target.value }))}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="cat-image">رابط الصورة (اختياري)</Label>
-                <Input
-                  id="cat-image"
-                  dir="ltr"
-                  placeholder="https://…"
-                  value={form.imageUrl}
-                  onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                />
-              </div>
+              <AdminImageUpload
+                id="cat-image"
+                label="صورة القسم (اختياري)"
+                value={form.imageUrl}
+                onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
+                onUploadingChange={setImageUploading}
+              />
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="cat-desc-ar">الوصف بالعربية (اختياري)</Label>
                 <Textarea
@@ -532,8 +533,9 @@ export function CategoriesManager() {
                 <span className="text-sm">ظاهر في الموقع</span>
               </label>
             </div>
-            <DialogFooter>
-              <Button type="submit" disabled={saving}>
+            </div>
+            <DialogFooter className="shrink-0 border-t border-border bg-muted/30 px-4 py-3 sm:px-6 sm:py-4">
+              <Button type="submit" disabled={saving || imageUploading}>
                 {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 {editing ? 'حفظ' : 'إنشاء'}
               </Button>
