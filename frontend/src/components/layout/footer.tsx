@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LanguageToggle } from '@/components/navigation/language-toggle'
-import { productService, USE_REMOTE_API } from '@/features/products/services/product-service'
+import { productService } from '@/features/products/services/product-service'
 import type { Category } from '@/types/product'
 import { useAuthStore } from '@/store/auth-store'
 import { useUIStore } from '@/store/ui-store'
@@ -23,22 +23,28 @@ import { useI18n } from '@/lib/i18n/use-i18n'
 export function Footer() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
-  const [liveCategories, setLiveCategories] = useState<Category[] | null>(null)
+  const [liveCategories, setLiveCategories] = useState<Category[]>([])
   const setSearchOpen = useUIStore((s) => s.setSearchOpen)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const { t } = useI18n()
   const year = new Date().getFullYear()
 
   useEffect(() => {
-    if (!USE_REMOTE_API) return
     let cancelled = false
     productService
       .categories()
       .then((cats) => {
-        if (!cancelled) setLiveCategories(cats ?? [])
+        if (!cancelled) {
+          const flattenActiveCategories = (nodes: Category[]): Category[] =>
+            nodes.flatMap((category) => {
+              if (category.isActive === false) return []
+              return [category, ...flattenActiveCategories(category.children ?? [])]
+            })
+          setLiveCategories(flattenActiveCategories(cats ?? []))
+        }
       })
       .catch(() => {
-        if (!cancelled) setLiveCategories(null)
+        if (!cancelled) setLiveCategories([])
       })
     return () => {
       cancelled = true
@@ -63,22 +69,15 @@ export function Footer() {
         { label: t.nav.bundles, href: '/bundles' },
       ],
     },
-    {
-      title: t.footer.categories,
-      links:
-        liveCategories && liveCategories.length > 0
-          ? liveCategories.map((category) => ({
-              label: category.name,
-              href: `/categories/${category.slug}`,
-            }))
-          : [
-              { label: t.nav.skinCare, href: '/categories/skin-care' },
-              { label: t.nav.hairCare, href: '/categories/hair-care' },
-              { label: t.nav.eyeCare, href: '/categories/eye-care' },
-              { label: t.nav.nailCare, href: '/categories/nail-care' },
-              { label: t.nav.kidsCare, href: '/categories/kids-care' },
-            ],
-    },
+    ...(liveCategories.length > 0
+      ? [{
+          title: t.footer.categories,
+          links: liveCategories.map((category) => ({
+            label: category.name,
+            href: `/categories/${category.slug}`,
+          })),
+        }]
+      : []),
     {
       title: t.footer.help,
       links: [
@@ -157,7 +156,7 @@ export function Footer() {
       </div>
 
       {/* الأعمدة */}
-      <div className="container-shelight grid grid-cols-2 gap-x-6 gap-y-10 py-12 lg:grid-cols-5 lg:gap-10">
+      <div className={`container-shelight grid grid-cols-2 gap-x-6 gap-y-10 py-12 ${liveCategories.length > 0 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} lg:gap-10`}>
         <div className="col-span-2 lg:col-span-1">
           <Link href="/" className="mb-4 inline-flex items-center" aria-label="SHE LIGHT">
             <Image src="/images/logo.png" alt="SHE LIGHT" width={640} height={424} className="h-16 w-auto object-contain" />

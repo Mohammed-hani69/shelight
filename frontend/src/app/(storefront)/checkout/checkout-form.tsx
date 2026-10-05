@@ -34,23 +34,31 @@ const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
 export const governorates = [
   'cairo',
   'alexandria',
-  'giza',
-  'qalyubia',
-  'sharqia',
+  'portSaid',
+  'suez',
+  'damietta',
   'dakahlia',
+  'sharqia',
+  'qalyubia',
+  'kafrElSheikh',
   'gharbia',
+  'monufia',
   'beheira',
+  'ismailia',
+  'giza',
+  'beniSuef',
+  'fayoum',
   'minya',
   'asyut',
   'sohag',
+  'qena',
   'luxor',
   'aswan',
-  'portSaid',
-  'ismailia',
-  'suez',
   'redSea',
-  'fayoum',
-  'menoufia',
+  'newValley',
+  'matrouh',
+  'northSinai',
+  'southSinai',
 ] as const
 
 /** صفحة الدفع */
@@ -353,18 +361,16 @@ export function CheckoutForm() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="governorate">{t.checkout.governorate}</Label>
-              <Input
+              <select
                 id="governorate"
-                list="governorates"
+                className="flex h-11 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 {...register('governorate', { onBlur: flushLead })}
-              />
-              <datalist id="governorates">
+              >
+                <option value="" disabled>اختاري المحافظة</option>
                 {governorates.map((g) => (
-                  <option key={g} value={g}>
-                    {t.checkout.governorates[g]}
-                  </option>
+                  <option key={g} value={g}>{t.checkout.governorates[g]}</option>
                 ))}
-              </datalist>
+              </select>
               {errors.governorate && <p className="text-xs text-danger">{errors.governorate.message}</p>}
             </div>
             <div className="space-y-1.5">
