@@ -8,11 +8,11 @@ from flask import current_app
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.core.constants import FREE_SHIPPING_THRESHOLD, SHIPPING_COST
 from app.core.errors import ApiError
 from app.core.i18n import DEFAULT_LANG, localized
 from app.extensions import db
 from app.models import CartItem, Product
+from app.modules.marketing_sections.store_settings import get_store_settings
 
 
 def _cart_payload(items: list[CartItem], lang: str = DEFAULT_LANG) -> dict:
@@ -33,14 +33,15 @@ def _cart_payload(items: list[CartItem], lang: str = DEFAULT_LANG) -> dict:
             }
         )
     subtotal = round(sum(item["price"] * item["quantity"] for item in out), 2)
-    shipping = 0.0 if subtotal >= FREE_SHIPPING_THRESHOLD else float(SHIPPING_COST)
+    settings = get_store_settings()
+    shipping = 0.0 if subtotal >= settings["freeShippingThreshold"] else settings["defaultShippingFee"]
     return {
         "items": out,
         "subtotal": subtotal,
         "shipping": shipping,
         "discount": 0.0,
         "total": round(subtotal + shipping, 2),
-        "freeShippingThreshold": FREE_SHIPPING_THRESHOLD,
+        "freeShippingThreshold": settings["freeShippingThreshold"],
     }
 
 

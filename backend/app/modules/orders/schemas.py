@@ -23,6 +23,7 @@ class ShippingAddressSchema(Schema):
     governorate = fields.Str(
         required=True, data_key="governorate", validate=validate.Length(max=120)
     )
+    governorateKey = fields.Str(data_key="governorateKey", load_default=None, validate=validate.Length(max=40))
     notes = fields.Str(data_key="notes", load_default="", validate=validate.Length(max=1000))
 
 

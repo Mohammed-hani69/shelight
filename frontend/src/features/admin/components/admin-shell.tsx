@@ -42,6 +42,7 @@ const NAV_ITEMS = [
   { label: 'الكوبونات', href: '/admin/coupons', Icon: TicketPercent },
   { label: 'العملاء', href: '/admin/customers', Icon: Users },
   { label: 'الإعدادات', href: '/admin/settings/shipping/bosta', Icon: Settings2 },
+  { label: 'إعدادات المتجر', href: '/admin/settings/store', Icon: Store },
   { label: 'تحليلات الرحلة', href: '/admin/analytics', Icon: BarChart3 },
 ]
 

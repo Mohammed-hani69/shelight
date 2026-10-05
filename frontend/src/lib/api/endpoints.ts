@@ -68,6 +68,7 @@ export const endpoints = {
   admin: {
     login: '/admin/login',
     dashboard: '/admin/dashboard',
+    storeSettings: '/admin/store-settings',
     products: '/admin/products',
     product: (id: string) => `/admin/products/${id}`,
     uploadProductImage: '/admin/products/upload',
@@ -110,6 +111,7 @@ export const endpoints = {
       disableBosta: '/admin/shipping/bosta/disable',
     },
   },
+  storeSettings: '/storefront/settings',
   profile: {
     get: '/profile',
     update: '/profile',

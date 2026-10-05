@@ -10,9 +10,55 @@ from app.core.security import admin_required
 from app.extensions import db
 from app.models import Product, StorefrontSection
 from app.modules.products.schemas import ProductListOut
+from app.modules.marketing_sections.store_settings import (
+    GOVERNORATE_KEYS,
+    get_store_settings,
+    save_store_settings,
+)
 
 public_bp = Blueprint("storefront_sections", __name__, url_prefix="/storefront/sections")
 admin_bp = Blueprint("storefront_sections_admin", __name__, url_prefix="/admin/storefront/sections")
+settings_public_bp = Blueprint("store_settings", __name__, url_prefix="/storefront/settings")
+settings_admin_bp = Blueprint("store_settings_admin", __name__, url_prefix="/admin/store-settings")
+
+
+class StoreSettingsSchema(Schema):
+    defaultShippingFee = fields.Float(required=True, validate=validate.Range(min=0, max=100000))
+    governorateFees = fields.Dict(
+        keys=fields.Str(validate=validate.OneOf(GOVERNORATE_KEYS)),
+        values=fields.Float(validate=validate.Range(min=0, max=100000)),
+        required=True,
+    )
+    freeShippingThreshold = fields.Float(required=True, validate=validate.Range(min=0, max=10000000))
+    announcementAr = fields.Str(required=True, validate=validate.Length(max=240))
+    announcementEn = fields.Str(required=True, validate=validate.Length(max=240))
+    whatsappPhone = fields.Str(load_default="", validate=validate.Length(max=32))
+
+
+@settings_public_bp.get("")
+def get_public_store_settings():
+    return jsonify({"data": get_store_settings()})
+
+
+@settings_admin_bp.get("")
+@admin_required()
+def get_admin_store_settings():
+    return jsonify({"data": get_store_settings()})
+
+
+@settings_admin_bp.put("")
+@admin_required()
+def update_admin_store_settings():
+    try:
+        data = StoreSettingsSchema().load(request.get_json(silent=True) or {})
+    except ValidationError as error:
+        raise ApiError("إعدادات المتجر غير صالحة", status_code=400, code="invalid_store_settings") from error
+    data["governorateFees"] = {
+        key: data["governorateFees"].get(key, data["defaultShippingFee"])
+        for key in GOVERNORATE_KEYS
+    }
+    data["whatsappPhone"] = "".join(char for char in data["whatsappPhone"] if char.isdigit())
+    return jsonify({"data": save_store_settings(data)})
 
 
 class SectionWriteSchema(Schema):

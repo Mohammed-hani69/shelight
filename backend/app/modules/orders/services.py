@@ -7,7 +7,6 @@ from decimal import Decimal
 from flask import current_app
 from sqlalchemy import select
 
-from app.core.constants import FREE_SHIPPING_THRESHOLD, SHIPPING_COST
 from app.core.errors import ApiError
 from app.core.security import hash_password
 from app.core.pagination import paginate
@@ -17,6 +16,7 @@ from app.models import CartItem, Customer, Order, OrderItem, Product
 from app.modules.coupons import services as coupon_service
 from app.modules.customers import services as customer_service
 from app.modules.tracking import services as tracking_service
+from app.modules.marketing_sections.store_settings import get_store_settings
 
 
 def _next_order_number() -> str:
@@ -71,7 +71,13 @@ def checkout(
     """
     rows, subtotal = _collect_items(data["items"])
 
-    shipping_cost = SHIPPING_COST if subtotal < Decimal(FREE_SHIPPING_THRESHOLD) else 0
+    store_settings = get_store_settings()
+    governorate_key = shipping.get("governorateKey")
+    shipping_fee = store_settings["governorateFees"].get(
+        governorate_key, store_settings["defaultShippingFee"]
+    )
+    threshold = Decimal(str(store_settings["freeShippingThreshold"]))
+    shipping_cost = Decimal(str(shipping_fee)) if subtotal < threshold else Decimal("0")
     discount = Decimal("0")
     coupon_code: str | None = None
     raw_code = (data.get("couponCode") or "").strip()

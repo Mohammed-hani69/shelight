@@ -8,6 +8,7 @@ export interface CheckoutFormPayload {
   fullName: string
   phone: string
   governorate: string
+  governorateKey?: string
   city: string
   address: string
   notes?: string
@@ -44,6 +45,7 @@ export function toCheckoutRequest(payload: CheckoutFormPayload) {
       address: payload.address,
       city: payload.city,
       governorate: payload.governorate,
+      governorateKey: payload.governorateKey,
       notes: payload.notes ?? '',
     },
     paymentMethod: payload.paymentMethod,

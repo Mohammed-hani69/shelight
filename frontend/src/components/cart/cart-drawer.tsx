@@ -14,14 +14,21 @@ import { useCartStore } from '@/store/cart-store'
 import { productService } from '@/features/products/services/product-service'
 import { usePinnedCoupon } from '@/features/coupons/hooks/use-pinned-coupon'
 import { formatPrice } from '@/lib/utils/format-price'
-import { FREE_SHIPPING_THRESHOLD } from '@/features/cart/utils/cart-utils'
+import { calcCartCalculations } from '@/features/cart/utils/cart-utils'
+import { useStoreSettings } from '@/features/store-settings/use-store-settings'
 import { useI18n } from '@/lib/i18n/use-i18n'
 import type { Product } from '@/types/product'
 
 /** سلة التسوق المنزلقة مع شريط الشحن المجاني والمنتجات المقترحة */
 export function CartDrawer() {
   const { t } = useI18n()
+  const settings = useStoreSettings()
   const { isOpen, close, items, calculations, updateQuantity, removeItem } = useCartStore()
+  const displayCalculations = calcCartCalculations(
+    items,
+    settings.freeShippingThreshold,
+    settings.defaultShippingFee,
+  )
   const [suggested, setSuggested] = useState<Product | null>(null)
   const { couponCode, discount } = usePinnedCoupon(calculations.subtotal)
 
@@ -43,7 +50,9 @@ export function CartDrawer() {
     }
   }, [isOpen, suggested])
 
-  const progress = Math.min(100, (calculations.subtotal / FREE_SHIPPING_THRESHOLD) * 100)
+  const progress = settings.freeShippingThreshold > 0
+    ? Math.min(100, (calculations.subtotal / settings.freeShippingThreshold) * 100)
+    : 100
   const freeShippingText = t.cart.freeShippingProgress.split('{amount}')
 
   const suggestion = suggested && !items.some((i) => i.productId === suggested.id) ? suggested : null
@@ -65,11 +74,11 @@ export function CartDrawer() {
           {/* شريط الشحن المجاني */}
           <div className="rounded-xl bg-accent/30 p-3">
             <p className="mb-2 text-sm">
-              {calculations.remainingForFreeShipping > 0 ? (
+              {displayCalculations.remainingForFreeShipping > 0 ? (
                 <>
                   {freeShippingText[0]}
                   <strong className="text-primary-dark">
-                    {formatPrice(calculations.remainingForFreeShipping)}
+                    {formatPrice(displayCalculations.remainingForFreeShipping)}
                   </strong>
                   {freeShippingText[1]}
                 </>
@@ -206,7 +215,7 @@ export function CartDrawer() {
               <div className="flex justify-between">
                 <span className="text-muted">{t.cart.shipping}</span>
                 <span className="font-medium">
-                  {calculations.shipping === 0 ? t.cart.free : formatPrice(calculations.shipping)}
+                  {displayCalculations.shipping === 0 ? t.cart.free : formatPrice(displayCalculations.shipping)}
                 </span>
               </div>
               {discount > 0 && couponCode && (
@@ -220,7 +229,7 @@ export function CartDrawer() {
             <div className="mb-4 flex justify-between text-base">
               <span className="font-medium">{t.cart.total}</span>
               <span className="font-display text-xl font-semibold text-plum">
-                {formatPrice(Math.max(0, calculations.total - discount))}
+                {formatPrice(Math.max(0, displayCalculations.total - discount))}
               </span>
             </div>
             <Button asChild className="w-full" onClick={close}>

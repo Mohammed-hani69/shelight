@@ -28,6 +28,7 @@ import { friendlyMessage } from '@/lib/api/errors'
 import { cn } from '@/lib/utils/cn'
 import { useI18n } from '@/lib/i18n/use-i18n'
 import { MediaImage } from '@/components/common/media-image'
+import { useStoreSettings } from '@/features/store-settings/use-store-settings'
 
 const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
 
@@ -64,7 +65,8 @@ export const governorates = [
 /** صفحة الدفع */
 export function CheckoutForm() {
   const { t } = useI18n()
-  const { items, calculations, clear } = useCartStore()
+  const settings = useStoreSettings()
+  const { items, clear } = useCartStore()
   const customer = useAuthStore((s) => s.customer)
   const [placing, setPlacing] = useState(false)
   const [couponInput, setCouponInput] = useState('')
@@ -154,6 +156,7 @@ export function CheckoutForm() {
   }
 
   const paymentMethod = watch('paymentMethod')
+  const selectedGovernorate = watch('governorate')
   const subtotal = useMemo(
     () => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     [items]
@@ -161,7 +164,10 @@ export function CheckoutForm() {
 
   // الخصم لا يتجاوز المجموع الفرعي، مثل ما يفعل الخادم تماماً.
   const discount = couponCode ? Math.min(couponDiscount, subtotal) : 0
-  const total = Math.max(0, subtotal + calculations.shipping - discount)
+  const shipping = subtotal === 0 || subtotal >= settings.freeShippingThreshold
+    ? 0
+    : settings.governorateFees[selectedGovernorate] ?? settings.defaultShippingFee
+  const total = Math.max(0, subtotal + shipping - discount)
 
   // يسجّل بدء الدفع مرة واحدة عند امتلاء السلة.
   const checkoutTracked = useRef(false)
@@ -274,6 +280,7 @@ export function CheckoutForm() {
         const order = await ordersApi.checkout({
           ...values,
           governorate: t.checkout.governorates[governorateKey] ?? values.governorate,
+          governorateKey,
           items: items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
@@ -526,7 +533,7 @@ export function CheckoutForm() {
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">{t.checkout.shipping}</dt>
-            <dd>{calculations.shipping === 0 ? t.checkout.free : formatPrice(calculations.shipping)}</dd>
+            <dd>{shipping === 0 ? t.checkout.free : formatPrice(shipping)}</dd>
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-success">

@@ -1,38 +1,26 @@
 'use client'
 
-import type { ComponentType } from 'react'
-import { ShoppingBag, Truck, Sparkles } from 'lucide-react'
-import { cn } from '@/lib/utils/cn'
+import { Truck } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/use-i18n'
+import { useStoreSettings } from '@/features/store-settings/use-store-settings'
+import { formatPrice } from '@/lib/utils/format-price'
 
 /** شريط الإعلانات أعلى الصفحة */
 export function AnnouncementBar() {
-  const { t } = useI18n()
-  const [TruckIcon, SparkleIcon, BagIcon] = [Truck, Sparkles, ShoppingBag] as ComponentType<{
-    className?: string
-  }>[]
-
-  const items = [
-    { icon: TruckIcon, text: t.announcement.freeShipping },
-    { icon: SparkleIcon, text: t.announcement.formulas },
-    { icon: BagIcon, text: t.announcement.returns },
-  ]
+  const { locale, t } = useI18n()
+  const settings = useStoreSettings()
+  const fallback = t.announcement.freeShipping.replace(
+    '{threshold}',
+    formatPrice(settings.freeShippingThreshold),
+  )
+  const text = ((locale === 'ar' ? settings.announcementAr : settings.announcementEn) || fallback)
+    .replace('{threshold}', formatPrice(settings.freeShippingThreshold))
 
   return (
     <div className="bg-plum text-cream">
-      <div className="container-shelight flex h-9 items-center justify-center gap-8 overflow-hidden">
-        {items.map(({ icon: Icon, text }) => (
-          <p
-            key={text}
-            className={cn(
-              'hidden items-center gap-1.5 text-xs md:flex'
-            )}
-          >
-            <Icon className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
-            {text}
-          </p>
-        ))}
-        <p className="text-xs md:hidden">{t.announcement.freeShipping}</p>
+      <div className="container-shelight flex min-h-9 items-center justify-center gap-2 overflow-hidden py-1.5 text-center">
+        <Truck className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
+        <p className="line-clamp-2 text-xs leading-5">{text || t.announcement.freeShipping}</p>
       </div>
     </div>
   )

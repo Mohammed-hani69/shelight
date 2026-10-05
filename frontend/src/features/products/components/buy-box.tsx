@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Check, ShieldCheck, Truck, RotateCcw } from 'lucide-react'
+import { Check, ShieldCheck, Truck, MessageCircle } from 'lucide-react'
 import { ProductRating } from '@/components/product/product-rating'
 import { PriceDisplay } from '@/components/product/price-display'
 import { QuantitySelector } from '@/components/product/quantity-selector'
@@ -15,6 +15,8 @@ import { toast } from 'sonner'
 import type { Product, ProductVariant } from '@/types/product'
 import { cn } from '@/lib/utils/cn'
 import { useI18n } from '@/lib/i18n/use-i18n'
+import { useStoreSettings } from '@/features/store-settings/use-store-settings'
+import { formatPrice } from '@/lib/utils/format-price'
 
 interface BuyBoxProps {
   product: Product
@@ -23,6 +25,7 @@ interface BuyBoxProps {
 /** صندوق الشراء في صفحة المنتج */
 export function BuyBox({ product }: BuyBoxProps) {
   const { t } = useI18n()
+  const settings = useStoreSettings()
   const [quantity, setQuantity] = useState(1)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants[0]
@@ -31,8 +34,8 @@ export function BuyBox({ product }: BuyBoxProps) {
   const compareAt = selectedVariant?.compareAtPrice ?? product.compareAtPrice
 
   const trust = [
-    { Icon: Truck, text: t.productPage.freeShipping },
-    { Icon: RotateCcw, text: t.productPage.easyReturns },
+    { Icon: Truck, text: t.productPage.freeShipping.replace('{threshold}', formatPrice(settings.freeShippingThreshold)) },
+    { Icon: MessageCircle, text: t.productPage.easyReturns },
     { Icon: ShieldCheck, text: t.productPage.dermTested },
   ]
 

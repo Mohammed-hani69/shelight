@@ -18,11 +18,19 @@ import { usePinnedCoupon } from '@/features/coupons/hooks/use-pinned-coupon'
 import { formatPrice } from '@/lib/utils/format-price'
 import { useI18n } from '@/lib/i18n/use-i18n'
 import type { Product } from '@/types/product'
+import { useStoreSettings } from '@/features/store-settings/use-store-settings'
+import { calcCartCalculations } from '@/features/cart/utils/cart-utils'
 
 /** صفحة السلة الكاملة */
 export function CartPage() {
   const { t } = useI18n()
+  const settings = useStoreSettings()
   const { items, calculations, updateQuantity, removeItem } = useCartStore()
+  const displayCalculations = calcCartCalculations(
+    items,
+    settings.freeShippingThreshold,
+    settings.defaultShippingFee,
+  )
   const [bestsellers, setBestsellers] = useState<Product[]>([])
 
   // كود الباقة مثبَّت في السلة — نُظهره في الملخص حتى لا يفاجئ العميل
@@ -136,7 +144,7 @@ export function CartPage() {
             <div className="flex justify-between">
               <dt className="text-muted">{t.cart.shipping}</dt>
               <dd className="font-medium">
-                {calculations.shipping === 0 ? t.cart.free : formatPrice(calculations.shipping)}
+                {displayCalculations.shipping === 0 ? t.cart.free : formatPrice(displayCalculations.shipping)}
               </dd>
             </div>
             {discount > 0 && couponCode && (
@@ -150,7 +158,7 @@ export function CartPage() {
           <div className="mb-5 flex items-center justify-between">
             <span className="font-medium">{t.cart.total}</span>
             <span className="font-display text-2xl font-semibold text-plum">
-              {formatPrice(Math.max(0, calculations.total - discount))}
+              {formatPrice(Math.max(0, displayCalculations.total - discount))}
             </span>
           </div>
           <Button asChild className="w-full">
@@ -160,7 +168,7 @@ export function CartPage() {
             </Link>
           </Button>
           <p className="mt-3 text-center text-xs text-muted">
-            {t.cart.trustBadges}
+            {t.cart.trustBadges.replace('{threshold}', formatPrice(settings.freeShippingThreshold))}
           </p>
         </aside>
       </div>

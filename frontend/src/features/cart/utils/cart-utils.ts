@@ -21,10 +21,14 @@ export function calcSubtotal(items: CartItem[]): number {
   return items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 }
 
-export function calcCartCalculations(items: CartItem[]): CartCalculations {
+export function calcCartCalculations(
+  items: CartItem[],
+  freeShippingThreshold = FREE_SHIPPING_THRESHOLD,
+  shippingCost = SHIPPING_COST,
+): CartCalculations {
   const subtotal = calcSubtotal(items)
-  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
-  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+  const shipping = subtotal === 0 || subtotal >= freeShippingThreshold ? 0 : shippingCost
+  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal)
   return { subtotal, shipping, total: subtotal + shipping, remainingForFreeShipping }
 }
 

@@ -18,6 +18,7 @@ from app.modules.customers.routes import bp as customers_bp
 from app.modules.journal.routes import bp as journal_bp
 from app.modules.marketing_sections.routes import admin_bp as sections_admin_bp
 from app.modules.marketing_sections.routes import public_bp as sections_public_bp
+from app.modules.marketing_sections.routes import settings_admin_bp, settings_public_bp
 from app.modules.orders.routes import bp as orders_bp
 from app.modules.products.routes import bp as products_bp
 from app.modules.reviews.routes import bp as reviews_bp
@@ -44,6 +45,8 @@ api_v1.register_blueprint(bundles_bp)
 api_v1.register_blueprint(journal_bp)
 api_v1.register_blueprint(sections_public_bp)
 api_v1.register_blueprint(sections_admin_bp)
+api_v1.register_blueprint(settings_public_bp)
+api_v1.register_blueprint(settings_admin_bp)
 api_v1.register_blueprint(tracking_bp)
 api_v1.register_blueprint(shipping_bp)
 api_v1.register_blueprint(analytics_bp)

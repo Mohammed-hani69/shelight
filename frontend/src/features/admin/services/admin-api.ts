@@ -31,6 +31,7 @@ import type {
   AdminVisitor,
   AdminVisitorTimeline,
 } from '@/types/admin'
+import type { StoreSettings } from '@/features/store-settings/store-settings'
 import type { AuthCustomer } from '@/types/auth'
 
 /** استجابة `/admin/login`: توكن + بيانات المدير. */
@@ -56,6 +57,14 @@ export const adminApi = {
   async getMe(): Promise<AuthCustomer> {
     const res = await apiClient.get<{ customer: AuthCustomer }>(endpoints.auth.me)
     return res.customer
+  },
+
+  async getStoreSettings(): Promise<StoreSettings> {
+    return apiClient.get<StoreSettings>(endpoints.admin.storeSettings)
+  },
+
+  async saveStoreSettings(payload: StoreSettings): Promise<StoreSettings> {
+    return apiClient.put<StoreSettings>(endpoints.admin.storeSettings, payload)
   },
 
   async dashboard(): Promise<AdminDashboardSummary> {

@@ -4,16 +4,19 @@ import { FlaskConical, Leaf, ShieldCheck, Truck, Sparkles, HeartPulse } from 'lu
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { MobileCarousel } from '@/components/marketing/mobile-carousel'
 import { useI18n } from '@/lib/i18n/use-i18n'
+import { useStoreSettings } from '@/features/store-settings/use-store-settings'
+import { formatPrice } from '@/lib/utils/format-price'
 
 export function WhyChoose() {
   const { t } = useI18n()
+  const settings = useStoreSettings()
 
   const reasons = [
     { Icon: FlaskConical, title: t.marketing.reasons.clinicalTitle, text: t.marketing.reasons.clinicalText },
     { Icon: HeartPulse, title: t.marketing.reasons.dermTitle, text: t.marketing.reasons.dermText },
     { Icon: Leaf, title: t.marketing.reasons.cleanTitle, text: t.marketing.reasons.cleanText },
     { Icon: ShieldCheck, title: t.marketing.reasons.safetyTitle, text: t.marketing.reasons.safetyText },
-    { Icon: Truck, title: t.marketing.reasons.deliveryTitle, text: t.marketing.reasons.deliveryText },
+    { Icon: Truck, title: t.marketing.reasons.deliveryTitle, text: t.marketing.reasons.deliveryText.replace('{threshold}', formatPrice(settings.freeShippingThreshold)) },
     { Icon: Sparkles, title: t.marketing.reasons.resultsTitle, text: t.marketing.reasons.resultsText },
   ]
 

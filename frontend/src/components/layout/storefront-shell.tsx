@@ -5,6 +5,7 @@ import { CartDrawer } from '@/components/cart/cart-drawer'
 import { SearchDialog } from '@/components/navigation/search-dialog'
 import { SiteSplash } from '@/components/layout/site-splash'
 import { OffersPopup } from '@/components/marketing/offers-popup'
+import { WhatsAppFloat } from '@/components/navigation/whatsapp-float'
 
 interface StorefrontShellProps {
   children: React.ReactNode
@@ -28,6 +29,7 @@ export function StorefrontShell({ children }: StorefrontShellProps) {
       <SearchDialog />
       <MobileAppBar />
       <OffersPopup />
+      <WhatsAppFloat />
     </div>
   )
 }
