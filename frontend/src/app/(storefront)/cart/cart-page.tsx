@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowRight, ShoppingBag, Trash2 } from 'lucide-react'
@@ -85,7 +85,7 @@ export function CartPage() {
                     className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-border"
                   >
                     {item.image && (
-                      <Image src={item.image} alt={item.name} fill sizes="96px" className="object-cover" />
+                      <MediaImage src={item.image} alt={item.name} fill sizes="96px" className="object-cover" />
                     )}
                   </Link>
                   <div className="flex flex-1 flex-col">

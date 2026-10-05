@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { ArrowRight, Ban, Printer, Save, ShoppingBag, Truck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -239,7 +239,7 @@ export function OrderDetail({ orderNumber }: { orderNumber: string }) {
                   <li key={item.id} className="flex items-center gap-3 px-4 py-3">
                     <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-border bg-accent/20">
                       {item.image ? (
-                        <Image
+                        <MediaImage
                           src={item.image}
                           alt={item.name ?? 'منتج'}
                           fill

@@ -27,7 +27,7 @@ import { formatPrice } from '@/lib/utils/format-price'
 import { friendlyMessage } from '@/lib/api/errors'
 import { cn } from '@/lib/utils/cn'
 import { useI18n } from '@/lib/i18n/use-i18n'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 
 const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
 
@@ -456,7 +456,7 @@ export function CheckoutForm() {
             <li key={item.id} className="flex items-center gap-3">
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border">
                 {item.image && (
-                  <Image src={item.image} alt={item.name} fill sizes="48px" className="object-cover" />
+                  <MediaImage src={item.image} alt={item.name} fill sizes="48px" className="object-cover" />
                 )}
               </div>
               <div className="flex-1">

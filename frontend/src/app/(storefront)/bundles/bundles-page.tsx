@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { toast } from 'sonner'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { ProductRating } from '@/components/product/product-rating'
@@ -88,7 +88,7 @@ export function BundlesPage() {
             >
               <div className="relative aspect-[4/3]">
                 {bundle.image && (
-                  <Image
+                  <MediaImage
                     src={bundle.image}
                     alt={bundle.name}
                     fill
@@ -118,7 +118,7 @@ export function BundlesPage() {
                         title={item.product.name}
                       >
                         {item.product.images[0] && (
-                          <Image
+                          <MediaImage
                             src={item.product.images[0].url}
                             alt={item.product.name}
                             fill

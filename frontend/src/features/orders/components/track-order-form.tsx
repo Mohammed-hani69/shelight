@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { useState } from 'react'
 import { PackageSearch, CircleCheck, Circle, PackageX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -197,7 +197,7 @@ export function TrackOrderForm({
               <li key={item.id} className="flex items-center gap-3">
                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border">
                   {item.image && (
-                    <Image src={item.image} alt={item.name} fill sizes="48px" className="object-cover" />
+                    <MediaImage src={item.image} alt={item.name} fill sizes="48px" className="object-cover" />
                   )}
                 </div>
                 <p className="flex-1 text-sm font-medium leading-tight">{item.name}</p>

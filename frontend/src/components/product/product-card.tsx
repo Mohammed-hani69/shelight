@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { WishlistButton } from '@/components/product/wishlist-button'
 import { ProductRating } from '@/components/product/product-rating'
 import { PriceDisplay } from '@/components/product/price-display'
@@ -38,7 +38,7 @@ export function ProductCard({ product, className, showAddToCart = true }: Produc
         aria-label={product.name}
       >
         {product.images[0] && (
-          <Image
+          <MediaImage
             src={product.images[0].url}
             alt={product.images[1]?.alt ?? product.name}
             fill

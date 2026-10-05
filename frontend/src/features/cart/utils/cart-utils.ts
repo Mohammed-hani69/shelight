@@ -1,5 +1,6 @@
 import type { Cart, CartItem } from '@/types/cart'
 import type { Product } from '@/types/product'
+import { resolveMediaUrl } from '@/lib/api/media'
 
 /**
  * حساب منطق السلة: المجموع، الخصم، الشحن.
@@ -34,7 +35,7 @@ export function buildCartItem(product: Product, quantity = 1): CartItem {
     productId: product.id,
     productSlug: product.slug,
     name: product.name,
-    image: product.images[0]?.url ?? '',
+    image: resolveMediaUrl(product.images[0]?.url ?? ''),
     price: product.price,
     compareAtPrice: product.compareAtPrice,
     quantity,

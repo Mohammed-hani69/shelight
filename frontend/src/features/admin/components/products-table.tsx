@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { useRouter } from 'next/navigation'
 import {
   ChevronLeft,
@@ -144,7 +144,7 @@ export function ProductsTable() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {product.images?.[0]?.url ? (
-                          <Image
+                          <MediaImage
                             src={product.images[0].url}
                             alt={product.name}
                             width={44}

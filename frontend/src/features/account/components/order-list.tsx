@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/common/empty-state'
 import { ordersApi } from '@/features/orders/services/orders-api'
 import type { Order, OrderStatus } from '@/types/order'
 import { formatPrice } from '@/lib/utils/format-price'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { useI18n } from '@/lib/i18n/use-i18n'
 
 const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
@@ -95,7 +95,7 @@ export function OrderList() {
                 <li key={item.id} className="flex items-center gap-3 py-3">
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border">
                     {item.image && (
-                      <Image src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />
+                      <MediaImage src={item.image} alt={item.name} fill sizes="56px" className="object-cover" />
                     )}
                   </div>
                   <div className="flex-1">

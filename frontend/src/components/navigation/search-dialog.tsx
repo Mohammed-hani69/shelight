@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { Search } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -104,7 +104,7 @@ export function SearchDialog() {
                   className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-accent/40"
                 >
                   {product.images[0] && (
-                    <Image
+                    <MediaImage
                       src={product.images[0].url}
                       alt={product.name}
                       width={48}

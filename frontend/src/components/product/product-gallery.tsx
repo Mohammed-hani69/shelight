@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { cn } from '@/lib/utils/cn'
 import { useI18n } from '@/lib/i18n/use-i18n'
 import type { Product } from '@/types/product'
@@ -34,14 +34,14 @@ export function ProductGallery({ images }: ProductGalleryProps) {
               i === active ? 'border-primary' : 'border-transparent opacity-70 hover:opacity-100'
             )}
           >
-            <Image src={image.url} alt={image.alt} fill sizes="64px" className="object-cover" />
+            <MediaImage src={image.url} alt={image.alt} fill sizes="64px" className="object-cover" />
           </button>
         ))}
       </div>
 
       {/* الصورة الرئيسية */}
       <div className="relative aspect-square flex-1 overflow-hidden rounded-[var(--radius-lg)] border border-border bg-accent/20">
-        <Image
+        <MediaImage
           key={current.id}
           src={current.url}
           alt={current.alt}

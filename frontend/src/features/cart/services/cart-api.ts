@@ -3,6 +3,7 @@ import { endpoints } from '@/lib/api/endpoints'
 import { cartService as mockCartService } from '@/features/cart/services/cart-mock'
 import type { Cart, CartItem } from '@/types/cart'
 import { useAuthStore } from '@/store/auth-store'
+import { resolveMediaUrl } from '@/lib/api/media'
 
 const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
 
@@ -37,7 +38,7 @@ function mapBackendCart(res: BackendCartResponse): Cart {
       productId: String(item.productId),
       productSlug: item.productSlug ?? '',
       name: item.name,
-      image: item.image ?? '',
+      image: resolveMediaUrl(item.image ?? ''),
       price: item.price,
       quantity: item.quantity,
       stock: item.stock,

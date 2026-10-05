@@ -18,6 +18,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { resolveMediaUrl } from '@/lib/api/media'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -728,7 +729,7 @@ export function BundlesManager() {
                             {product.images?.[0]?.url ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
-                                src={product.images[0].url}
+                                src={resolveMediaUrl(product.images[0].url)}
                                 alt=""
                                 className="h-full w-full object-cover"
                               />

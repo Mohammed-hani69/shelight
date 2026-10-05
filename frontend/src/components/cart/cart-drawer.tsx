@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { MediaImage } from '@/components/common/media-image'
 import { motion, AnimatePresence } from 'motion/react'
 import { ShoppingBag, Trash2, Sparkles } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
@@ -121,7 +121,7 @@ export function CartDrawer() {
                         onClick={close}
                       >
                         {item.image && (
-                          <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
+                          <MediaImage src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
                         )}
                       </Link>
                       <div className="flex flex-1 flex-col">
@@ -174,7 +174,7 @@ export function CartDrawer() {
                       className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md"
                     >
                       {suggestion.images[0] && (
-                        <Image
+                        <MediaImage
                           src={suggestion.images[0].url}
                           alt={suggestion.name}
                           fill
