@@ -9,6 +9,7 @@ const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
 /** `ReviewOut` في الـ backend: مفاتيح camelCase ومعرّف المنتج غير مضمّن. */
 interface BackendReview {
   id: string
+  productName?: string
   authorName: string
   rating: number
   title: string | null
@@ -52,7 +53,19 @@ export const reviewService = {
 
   /** شهادات العملاء المعروضة في الصفحة الرئيسية — لا مصدر API لها بعد. */
   async clients(): Promise<ClientReview[]> {
-    return clientReviews
+    if (!USE_REMOTE_API) return clientReviews
+    try {
+      const items = await apiClient.get<BackendReview[]>(endpoints.reviews.homepage, { auth: false })
+      return (items ?? []).map((review) => ({
+        id: String(review.id),
+        name: review.authorName,
+        rating: review.rating,
+        text: review.body,
+        product: review.productName,
+      }))
+    } catch {
+      return []
+    }
   },
 
   async submit(

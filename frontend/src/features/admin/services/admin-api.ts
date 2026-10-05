@@ -324,8 +324,11 @@ export const adminApi = {
     return apiClient.getWithMeta<AdminReview[], BackendMeta>(`${endpoints.admin.reviews}${suffix}`)
   },
 
-  async moderateReview(id: string, isPublished: boolean): Promise<{ id: string; isPublished: boolean }> {
-    return apiClient.patch<{ id: string; isPublished: boolean }>(endpoints.admin.review(id), { isPublished })
+  async moderateReview(
+    id: string,
+    payload: { isPublished?: boolean; showOnHome?: boolean },
+  ): Promise<{ id: string; isPublished: boolean; showOnHome: boolean }> {
+    return apiClient.patch<{ id: string; isPublished: boolean; showOnHome: boolean }>(endpoints.admin.review(id), payload)
   },
 
   /** تشغيل يدوي لفحص السلال المتروكة — idempotent. */
@@ -375,6 +378,7 @@ export interface ReviewOverview {
   totalReviews: number
   publishedReviews: number
   pendingReviews: number
+  homepageReviews: number
   averageRating: number
   distribution: Record<string, number>
   products: Array<{
@@ -399,6 +403,7 @@ export interface AdminReview {
   helpfulCount: number
   createdAt: string | null
   isPublished: boolean
+  showOnHome: boolean
 }
 
 export interface BostaOverview {

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { BadgeCheck, BarChart3, CheckCircle2, Eye, EyeOff, Loader2, MessageSquareText, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { ErrorState } from '@/features/admin/components/error-state'
 import { adminApi, type AdminReview, type ReviewOverview } from '@/features/admin/services/admin-api'
 import { friendlyMessage } from '@/lib/api/errors'
@@ -56,11 +57,18 @@ export function ReviewsManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const moderate = async (review: AdminReview) => {
+  const moderate = async (review: AdminReview, action: 'publish' | 'homepage') => {
     setBusyId(review.id)
     try {
-      await adminApi.moderateReview(review.id, !review.isPublished)
-      toast.success(review.isPublished ? 'تم إخفاء التقييم' : 'تم نشر التقييم')
+      const payload = action === 'publish'
+        ? { isPublished: !review.isPublished }
+        : { showOnHome: !review.showOnHome }
+      await adminApi.moderateReview(review.id, payload)
+      toast.success(
+        action === 'publish'
+          ? review.isPublished ? 'تم إخفاء التقييم من صفحة المنتج' : 'تم نشر التقييم تحت المنتج'
+          : review.showOnHome ? 'تم إلغاء إبراز التقييم بالرئيسية' : 'سيظهر التقييم في مجتمعنا بالرئيسية',
+      )
       await load(page, filter)
     } catch (err) {
       toast.error(friendlyMessage(err))
@@ -73,11 +81,12 @@ export function ReviewsManager() {
     <div className="space-y-6">
       {error && <ErrorState message={error} onRetry={() => void load(page, filter)} />}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Metric label="كل التقييمات" value={overview?.totalReviews ?? 0} icon={MessageSquareText} />
         <Metric label="متوسط التقييم المنشور" value={`${(overview?.averageRating ?? 0).toFixed(1)} / 5`} icon={Star} />
         <Metric label="تقييمات منشورة" value={overview?.publishedReviews ?? 0} icon={CheckCircle2} />
         <Metric label="مخفية للمراجعة" value={overview?.pendingReviews ?? 0} icon={EyeOff} />
+        <Metric label="ظاهرة في الرئيسية" value={overview?.homepageReviews ?? 0} icon={MessageSquareText} />
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
@@ -164,7 +173,7 @@ export function ReviewsManager() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
           <div>
             <h2 className="font-display text-lg font-semibold text-plum">تقييمات العملاء</h2>
-            <p className="mt-1 text-xs text-muted">إظهار أو إخفاء التقييمات من صفحة المنتج.</p>
+                  <p className="mt-1 text-xs text-muted">تحكّم بشكل مستقل في ظهور التقييم تحت المنتج وإبرازه بالرئيسية.</p>
           </div>
           <select
             value={filter}
@@ -199,10 +208,20 @@ export function ReviewsManager() {
                   {review.title && <h3 className="mt-1 text-sm font-medium text-charcoal">{review.title}</h3>}
                   <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-muted">{review.body}</p>
                 </div>
-                <Button type="button" variant="outline" size="sm" disabled={busyId === review.id} onClick={() => void moderate(review)}>
-                  {busyId === review.id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : review.isPublished ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
-                  {review.isPublished ? 'إخفاء' : 'نشر'}
-                </Button>
+                <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+                  <Button type="button" variant="outline" size="sm" disabled={busyId === review.id} onClick={() => void moderate(review, 'publish')}>
+                    {busyId === review.id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : review.isPublished ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+                    {review.isPublished ? 'إخفاء من المنتج' : 'نشر تحت المنتج'}
+                  </Button>
+                  <label className="flex items-center gap-2 text-xs text-muted">
+                    <Checkbox
+                      checked={review.showOnHome}
+                      disabled={!review.isPublished || busyId === review.id}
+                      onCheckedChange={() => void moderate(review, 'homepage')}
+                    />
+                    إبرازه في مجتمعنا بالرئيسية
+                  </label>
+                </div>
               </li>
             ))}
           </ul>

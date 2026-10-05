@@ -22,7 +22,8 @@ admin_bp = Blueprint("reviews_admin", __name__, url_prefix="/admin/reviews")
 
 
 class ReviewModerationSchema(Schema):
-    isPublished = fields.Bool(required=True)
+    isPublished = fields.Bool()
+    showOnHome = fields.Bool()
 
 
 @bp.get("/products/<slug>/reviews")
@@ -52,6 +53,31 @@ def mark_helpful(review_id: int):
     """زيادة عدّاد المراجعة المفيدة — لا يتطلب دخولاً."""
     review = review_service.increment_helpful(review_id)
     return jsonify({"data": {"id": str(review.id), "helpfulCount": review.helpful_count}})
+
+
+@bp.get("/reviews/homepage")
+def list_homepage_reviews():
+    """التقييمات المنشورة التي اختار المدير إبرازها على الصفحة الرئيسية."""
+    reviews = db.session.execute(
+        select(Review)
+        .where(Review.is_published.is_(True), Review.show_on_home.is_(True))
+        .options(selectinload(Review.product))
+        .order_by(Review.created_at.desc())
+        .limit(12)
+    ).scalars().all()
+    return jsonify(
+        {
+            "data": [
+                {
+                    **ReviewOut().dump(review),
+                    "productName": (review.product.name_ar or review.product.name_en)
+                    if review.product
+                    else "",
+                }
+                for review in reviews
+            ]
+        }
+    )
 
 
 @admin_bp.get("/overview")
@@ -104,6 +130,13 @@ def review_overview():
                 "totalReviews": int(total_reviews),
                 "publishedReviews": int(published_reviews),
                 "pendingReviews": int(pending_reviews),
+                "homepageReviews": int(
+                    db.session.execute(
+                        select(func.count(Review.id)).where(
+                            Review.is_published.is_(True), Review.show_on_home.is_(True)
+                        )
+                    ).scalar_one()
+                ),
                 "averageRating": round(float(average_rating or 0), 2),
                 "distribution": {str(star): int(distribution.get(star, 0)) for star in range(1, 6)},
                 "products": product_performance,
@@ -134,6 +167,7 @@ def list_admin_reviews():
                     else "منتج محذوف",
                     "productSlug": review.product.slug if review.product else "",
                     "isPublished": review.is_published,
+                    "showOnHome": review.show_on_home,
                 }
                 for review in items
             ],
@@ -152,6 +186,23 @@ def moderate_review(review_id: int):
         data = ReviewModerationSchema().load(request.get_json(silent=True) or {})
     except ValidationError as error:
         raise ApiError("حالة النشر غير صالحة", status_code=400) from error
-    review.is_published = data["isPublished"]
+    if not data:
+        raise ApiError("حدد التغيير المطلوب", status_code=400)
+    if "isPublished" in data:
+        review.is_published = data["isPublished"]
+        if not review.is_published:
+            review.show_on_home = False
+    if "showOnHome" in data:
+        if data["showOnHome"] and not review.is_published:
+            raise ApiError("انشر التقييم قبل إظهاره في الصفحة الرئيسية.", status_code=400)
+        review.show_on_home = data["showOnHome"]
     db.session.commit()
-    return jsonify({"data": {"id": str(review.id), "isPublished": review.is_published}})
+    return jsonify(
+        {
+            "data": {
+                "id": str(review.id),
+                "isPublished": review.is_published,
+                "showOnHome": review.show_on_home,
+            }
+        }
+    )

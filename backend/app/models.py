@@ -184,6 +184,7 @@ class Review(db.Model):
     body: Mapped[str] = mapped_column(Text, nullable=False, default="")
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_published: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    show_on_home: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     helpful_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)
 

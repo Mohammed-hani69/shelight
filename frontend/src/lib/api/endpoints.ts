@@ -26,6 +26,7 @@ export const endpoints = {
   reviews: {
     byProduct: (slug: string) => `/products/${slug}/reviews`,
     create: (slug: string) => `/products/${slug}/reviews`,
+    homepage: '/reviews/homepage',
     helpful: (id: string) => `/reviews/${id}/helpful`,
   },
   cart: {

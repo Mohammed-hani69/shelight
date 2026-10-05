@@ -29,6 +29,8 @@ export function CustomerReviews() {
     }
   }, [])
 
+  if (reviews.length === 0) return null
+
   return (
     <section className="py-14 md:py-20" aria-label={t.a11y.customerReviews}>
       <div className="container-shelight">
