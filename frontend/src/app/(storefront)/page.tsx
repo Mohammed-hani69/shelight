@@ -6,12 +6,9 @@ import {
   RoutineBundles,
   BestSellers,
   EditorialBanner,
-  ShopByConcern,
   WhyChoose,
   DoctorReviews,
-  BeforeAfterResults,
   CustomerReviews,
-  InstagramSocial,
 } from '@/components/marketing'
 import { config } from '@/config/site'
 
@@ -31,9 +28,7 @@ export const metadata: Metadata = {
 /**
  * الصفحة الرئيسية — تُركِّب أقسام الهوم فقط.
  *
- * أُزيلت بلوكات `CategoryShowcase` الخمسة (صورة فئة + منتجاتها لكل قسم):
- * كانت أطول جزء في الصفحة وكانت مكرّرة مع `FeaturedCategories` و`ShopByConcern`
- * الذين يقودان لنفس صفحات الفئات. روابط الفئات ما زالت في الفوتر والشريط السفلي.
+ * تُركّب الصفحة من أقسام المتجر الرئيسية.
  */
 export default function HomePage() {
   return (
@@ -44,12 +39,9 @@ export default function HomePage() {
       <FeaturedCategories />
       <RoutineBundles />
       <EditorialBanner />
-      <ShopByConcern />
       <WhyChoose />
       <DoctorReviews />
-      <BeforeAfterResults />
       <CustomerReviews />
-      <InstagramSocial />
     </>
   )
 }
