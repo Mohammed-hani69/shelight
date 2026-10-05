@@ -4,8 +4,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LanguageToggle } from '@/components/navigation/language-toggle'
 import { productService } from '@/features/products/services/product-service'
@@ -21,8 +19,6 @@ import { useI18n } from '@/lib/i18n/use-i18n'
  *(link عبر الشريط السفلي + روابط الفوتر يغطّيان كل روابط الموقع).
  */
 export function Footer() {
-  const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
   const [liveCategories, setLiveCategories] = useState<Category[]>([])
   const setSearchOpen = useUIStore((s) => s.setSearchOpen)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -50,14 +46,6 @@ export function Footer() {
       cancelled = true
     }
   }, [])
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email.trim()) return
-    setSent(true)
-    toast.success(t.footer.subscribed)
-    setEmail('')
-  }
 
   const footerColumns = [
     {
@@ -99,44 +87,6 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border bg-surface">
-      {/* النشرة البريدية */}
-      <div className="border-b border-border bg-accent/20 py-12">
-        <div className="container-shelight flex flex-col items-center gap-4 text-center">
-          <p className="eyebrow text-xs font-medium text-primary">
-            {t.footer.join}
-          </p>
-          <h2 className="font-display text-3xl font-semibold text-plum">
-            {t.footer.newsTitle}
-          </h2>
-          <p className="max-w-md text-sm text-muted">
-            {t.footer.newsSub}
-          </p>
-          {sent ? (
-            <p className="rounded-full bg-success/10 px-4 py-2 text-sm font-medium text-success">
-              {t.footer.subscribed}
-            </p>
-          ) : (
-            <form
-              onSubmit={handleSubscribe}
-              className="flex w-full max-w-md gap-2"
-              role="form"
-              aria-label={t.a11y.newsletterSignup}
-            >
-              <Input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.footer.enterEmail}
-                aria-label={t.a11y.emailAddress}
-                className="bg-surface"
-              />
-              <Button type="submit">{t.footer.subscribe}</Button>
-            </form>
-          )}
-        </div>
-      </div>
-
       {/* البحث وتبديل اللغة — هنا بدل الهيدر على الموبايل */}
       <div className="border-b border-border">
         <div className="container-shelight flex flex-col gap-3 py-6 sm:flex-row sm:items-center">
