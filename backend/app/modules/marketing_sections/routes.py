@@ -13,6 +13,7 @@ from app.modules.products.schemas import ProductListOut
 from app.modules.marketing_sections.store_settings import (
     GOVERNORATE_KEYS,
     get_store_settings,
+    normalize_social_links,
     save_store_settings,
 )
 
@@ -20,6 +21,12 @@ public_bp = Blueprint("storefront_sections", __name__, url_prefix="/storefront/s
 admin_bp = Blueprint("storefront_sections_admin", __name__, url_prefix="/admin/storefront/sections")
 settings_public_bp = Blueprint("store_settings", __name__, url_prefix="/storefront/settings")
 settings_admin_bp = Blueprint("store_settings_admin", __name__, url_prefix="/admin/store-settings")
+
+
+class SocialLinksSchema(Schema):
+    facebook = fields.Str(load_default="", validate=validate.Length(max=300))
+    instagram = fields.Str(load_default="", validate=validate.Length(max=300))
+    tiktok = fields.Str(load_default="", validate=validate.Length(max=300))
 
 
 class StoreSettingsSchema(Schema):
@@ -33,6 +40,7 @@ class StoreSettingsSchema(Schema):
     announcementAr = fields.Str(required=True, validate=validate.Length(max=240))
     announcementEn = fields.Str(required=True, validate=validate.Length(max=240))
     whatsappPhone = fields.Str(load_default="", validate=validate.Length(max=32))
+    socialLinks = fields.Nested(SocialLinksSchema, load_default=dict)
 
 
 @settings_public_bp.get("")
@@ -58,6 +66,7 @@ def update_admin_store_settings():
         for key in GOVERNORATE_KEYS
     }
     data["whatsappPhone"] = "".join(char for char in data["whatsappPhone"] if char.isdigit())
+    data["socialLinks"] = normalize_social_links(data.get("socialLinks"))
     return jsonify({"data": save_store_settings(data)})
 
 

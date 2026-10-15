@@ -5,7 +5,7 @@ import type { Product } from '@/types/product'
 /** تبويبات تفاصيل المنتج: الوصف، المكونات، طريقة الاستخدام، الأسئلة */
 export function ProductTabs({ product }: { product: Product }) {
   return (
-    <div className="rounded-[var(--radius-lg)] border border-border bg-surface p-5 md:p-8">
+    <div className="rounded-[var(--radius-lg)] border border-border bg-surface p-5 text-start md:p-8">
       <Tabs defaultValue="description">
         <TabsList className="w-full overflow-x-auto">
           <TabsTrigger value="description">الوصف</TabsTrigger>
@@ -14,7 +14,7 @@ export function ProductTabs({ product }: { product: Product }) {
           <TabsTrigger value="faq">الأسئلة الشائعة</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="description" className="space-y-4 text-sm leading-relaxed text-charcoal">
+        <TabsContent value="description" className="space-y-4 text-start text-sm leading-relaxed text-charcoal">
           <p>{product.description}</p>
           <div>
             <h3 className="mb-2 font-display text-lg font-semibold text-plum">أهم الفوائد</h3>

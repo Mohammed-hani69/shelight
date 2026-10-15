@@ -12,6 +12,7 @@ GOVERNORATE_KEYS = (
     "beniSuef", "fayoum", "minya", "asyut", "sohag", "qena", "luxor", "aswan",
     "redSea", "newValley", "matrouh", "northSinai", "southSinai",
 )
+SOCIAL_KEYS = ("facebook", "instagram", "tiktok")
 SETTINGS_KEY = "store_settings"
 
 
@@ -23,7 +24,27 @@ def default_store_settings() -> dict[str, Any]:
         "announcementAr": "شحن مجاني للطلبات فوق {threshold}",
         "announcementEn": "Free shipping over {threshold}",
         "whatsappPhone": "",
+        "socialLinks": {key: "" for key in SOCIAL_KEYS},
     }
+
+
+def normalize_social_links(raw: dict[str, Any] | None) -> dict[str, str]:
+    """يرجّع روابط التواصل منظّفة: نصّ فارغ أو رابط يبدأ بـ http(s).
+
+    المدير قد يكتب `facebook.com/page` بلا بروتوكول؛ نضيف `https://`
+    حتى لا يتحول الرابط في الفوتر إلى مسار نسبي داخل الموقع.
+    """
+    links: dict[str, str] = {}
+    for key in SOCIAL_KEYS:
+        value = ""
+        if isinstance(raw, dict):
+            candidate = raw.get(key)
+            if isinstance(candidate, str):
+                value = candidate.strip()
+        if value and not value.startswith(("http://", "https://")):
+            value = f"https://{value.lstrip('/')}"
+        links[key] = value
+    return links
 
 
 def get_store_settings() -> dict[str, Any]:
@@ -53,6 +74,7 @@ def get_store_settings() -> dict[str, Any]:
         "announcementAr": str(content.get("announcementAr") or defaults["announcementAr"]),
         "announcementEn": str(content.get("announcementEn") or defaults["announcementEn"]),
         "whatsappPhone": str(content.get("whatsappPhone") or ""),
+        "socialLinks": normalize_social_links(content.get("socialLinks")),
     }
 
 

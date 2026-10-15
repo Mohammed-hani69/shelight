@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MessageCircle, Save, Truck } from 'lucide-react'
+import { MessageCircle, Save, Share2, Truck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -99,6 +99,28 @@ export function StoreSettingsManager() {
             <div className="space-y-1.5">
               <Label htmlFor="announcement-en">محتوى الشريط العلوي بالإنجليزية</Label>
               <Input id="announcement-en" dir="ltr" maxLength={240} value={form.announcementEn} onChange={(event) => setForm((prev) => ({ ...prev, announcementEn: event.target.value }))} />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-border bg-surface p-4 sm:p-6">
+          <div className="mb-1 flex items-center gap-2">
+            <Share2 className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h2 className="font-display text-lg font-semibold text-plum">روابط التواصل الاجتماعي</h2>
+          </div>
+          <p className="mb-4 text-sm text-muted">تظهر في أسفل الموقع. اتركي الحقل فارغاً لإخفاء المنصّة.</p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="social-facebook">فيسبوك</Label>
+              <Input id="social-facebook" dir="ltr" inputMode="url" placeholder="https://facebook.com/…" value={form.socialLinks.facebook} onChange={(event) => setForm((prev) => ({ ...prev, socialLinks: { ...prev.socialLinks, facebook: event.target.value } }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="social-instagram">إنستجرام</Label>
+              <Input id="social-instagram" dir="ltr" inputMode="url" placeholder="https://instagram.com/…" value={form.socialLinks.instagram} onChange={(event) => setForm((prev) => ({ ...prev, socialLinks: { ...prev.socialLinks, instagram: event.target.value } }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="social-tiktok">تيك توك</Label>
+              <Input id="social-tiktok" dir="ltr" inputMode="url" placeholder="https://tiktok.com/@…" value={form.socialLinks.tiktok} onChange={(event) => setForm((prev) => ({ ...prev, socialLinks: { ...prev.socialLinks, tiktok: event.target.value } }))} />
             </div>
           </div>
         </section>

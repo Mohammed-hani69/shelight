@@ -22,9 +22,9 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
       <Swiper
         modules={[Navigation, A11y]}
         spaceBetween={12}
-        slidesPerView={2.4}
+        slidesPerView={2}
         breakpoints={{
-          480: { slidesPerView: 3, spaceBetween: 12 },
+          640: { slidesPerView: 3, spaceBetween: 12 },
           768: { slidesPerView: 4, spaceBetween: 14 },
           1024: { slidesPerView: 5, spaceBetween: 16 },
           1280: { slidesPerView: 6, spaceBetween: 16 },

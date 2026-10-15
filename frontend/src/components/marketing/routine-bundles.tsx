@@ -41,15 +41,16 @@ export function RoutineBundles() {
           eyebrow={t.marketing.routineEyebrow}
           title={t.marketing.routineTitle}
           subtitle={t.marketing.routineSub}
+          className="[&>h2]:text-2xl [&>h2]:md:text-3xl [&>p]:text-xs [&>p]:md:text-sm"
         />
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {bundles.map((bundle) => (
             <Link
               key={bundle.id}
               href={`/bundles#${bundle.slug}`}
               className="group overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface transition-shadow hover:shadow-card"
             >
-              <div className="relative aspect-[4/3] overflow-hidden">
+              <div className="relative aspect-[16/10] overflow-hidden sm:aspect-[4/3]">
                 {bundle.image && (
                   <MediaImage
                     src={bundle.image}
@@ -65,16 +66,23 @@ export function RoutineBundles() {
                   </Badge>
                 )}
               </div>
-              <div className="flex flex-col gap-2 p-5">
-                <h3 className="font-display text-2xl font-semibold text-plum">{bundle.name}</h3>
-                <p className="text-sm text-muted line-clamp-2">{bundle.description}</p>
+              <div className="flex flex-1 flex-col gap-2 p-3 sm:p-5">
+                <h3 className="min-h-9 line-clamp-2 break-words font-display text-sm font-semibold leading-snug text-plum sm:min-h-10 sm:text-base lg:text-lg">
+                  {bundle.name}
+                </h3>
+                <p className="line-clamp-2 text-xs leading-relaxed text-muted sm:text-sm">{bundle.description}</p>
                 <ProductRating rating={bundle.rating} reviewCount={bundle.reviewCount} />
-                <div className="mt-2 flex items-center justify-between">
-                  <PriceDisplay price={bundle.price} compareAtPrice={bundle.compareAtPrice} size="lg" />
+                <div className="mt-auto flex flex-col gap-3 pt-1 sm:pt-2">
+                  <PriceDisplay
+                    price={bundle.price}
+                    compareAtPrice={bundle.compareAtPrice}
+                    size="md"
+                    className="flex-wrap gap-x-1.5"
+                  />
                   <Button
                     variant="outline"
                     size="sm"
-                    className="pointer-events-none group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground"
+                    className="pointer-events-none w-full group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground"
                   >
                     {t.marketing.viewSet}
                   </Button>

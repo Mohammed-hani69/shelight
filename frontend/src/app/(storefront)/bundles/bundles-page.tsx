@@ -103,7 +103,9 @@ export function BundlesPage() {
                 )}
               </div>
               <div className="flex flex-1 flex-col gap-3 p-6">
-                <h2 className="font-display text-2xl font-semibold text-plum">{bundle.name}</h2>
+                <h2 className="min-h-10 line-clamp-2 break-words font-display text-base font-semibold leading-snug text-plum sm:min-h-12 sm:text-lg lg:text-xl">
+                  {bundle.name}
+                </h2>
                 <p className="text-sm leading-relaxed text-muted">{bundle.description}</p>
 
                 <div>

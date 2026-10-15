@@ -28,13 +28,13 @@ export function ProductCard({ product, className, showAddToCart = true }: Produc
   return (
     <article
       className={cn(
-        'group relative mx-auto flex h-full w-full max-w-[180px] flex-col overflow-hidden rounded-md border border-border bg-surface transition-shadow hover:shadow-card',
+        'group relative mx-auto flex h-full w-full max-w-none flex-col overflow-hidden rounded-md border border-border bg-surface transition-shadow hover:shadow-card md:max-w-[240px]',
         className
       )}
     >
       <Link
         href={`/products/${product.slug}`}
-        className="relative mx-2.5 mt-2.5 block aspect-[16/9] overflow-hidden rounded-md bg-cream-dark/50"
+        className="relative block aspect-[4/3] overflow-hidden bg-cream-dark/50"
         aria-label={product.name}
       >
         {product.images[0] && (
@@ -59,13 +59,13 @@ export function ProductCard({ product, className, showAddToCart = true }: Produc
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-1 p-2">
-        <span className="eyebrow line-clamp-1 text-[10px] text-muted">
+      <div className="flex flex-1 flex-col gap-1 p-2 sm:p-3">
+        <span className="eyebrow line-clamp-1 text-[10px] text-muted sm:text-[11px]">
           {product.category.name}
         </span>
         <Link
           href={`/products/${product.slug}`}
-          className="line-clamp-2 text-[13px] font-medium leading-snug hover:text-primary-dark"
+          className="line-clamp-2 text-[13px] font-medium leading-snug hover:text-primary-dark sm:text-sm"
         >
           {product.name}
         </Link>
@@ -76,7 +76,7 @@ export function ProductCard({ product, className, showAddToCart = true }: Produc
           <PriceDisplay price={product.price} compareAtPrice={product.compareAtPrice} size="sm" />
         </div>
         {showAddToCart && !isOut && (
-          <AddToCartButton product={product} className="mt-1 h-8 text-[11px]" />
+          <AddToCartButton product={product} className="mt-1 h-9 text-xs sm:text-sm" />
         )}
         {isOut && (
           <p className="mt-1 rounded-full bg-accent/40 px-3 py-1.5 text-center text-xs font-medium text-muted">

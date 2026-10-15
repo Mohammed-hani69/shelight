@@ -11,6 +11,14 @@ export const GOVERNORATE_OPTIONS = [
   ['northSinai', 'شمال سيناء'], ['southSinai', 'جنوب سيناء'],
 ] as const
 
+export const SOCIAL_PLATFORMS = ['facebook', 'instagram', 'tiktok'] as const
+
+export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]
+
+export type SocialLinks = Record<SocialPlatform, string>
+
+export const EMPTY_SOCIAL_LINKS: SocialLinks = { facebook: '', instagram: '', tiktok: '' }
+
 export interface StoreSettings {
   defaultShippingFee: number
   governorateFees: Record<string, number>
@@ -18,6 +26,7 @@ export interface StoreSettings {
   announcementAr: string
   announcementEn: string
   whatsappPhone: string
+  socialLinks: SocialLinks
 }
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
@@ -27,6 +36,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   announcementAr: 'شحن مجاني للطلبات فوق {threshold}',
   announcementEn: 'Free shipping over {threshold}',
   whatsappPhone: '',
+  socialLinks: EMPTY_SOCIAL_LINKS,
 }
 
 export async function fetchStoreSettings(): Promise<StoreSettings> {

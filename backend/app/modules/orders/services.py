@@ -71,6 +71,7 @@ def checkout(
     """
     rows, subtotal = _collect_items(data["items"])
 
+    shipping = data["shipping"]
     store_settings = get_store_settings()
     governorate_key = shipping.get("governorateKey")
     shipping_fee = store_settings["governorateFees"].get(
@@ -90,7 +91,6 @@ def checkout(
     total = subtotal + Decimal(shipping_cost) - discount
 
     customer = db.session.get(Customer, customer_id) if customer_id else None
-    shipping = data["shipping"]
     if customer is None:
         normalized_phone = normalize_phone(shipping["phone"])
         if not normalized_phone:

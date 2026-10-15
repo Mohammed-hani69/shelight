@@ -197,6 +197,42 @@ def test_checkout_below_threshold_charges_shipping(client):
     assert data["total"] == round(data["subtotal"] + data["shippingCost"] - data["discountAmount"], 2)
 
 
+def test_checkout_uses_governorate_fee_by_key(client, app):
+    """رسوم الشحن تُقرأ من محافظة العميل (`governorateKey`) لا من الرقم الثابت."""
+    from app.extensions import db
+    from app.models import StorefrontSection
+
+    pid = product_id(client, "nail-strength-elixir")  # 280 → دون الحد
+    with app.app_context():
+        db.session.add(
+            StorefrontSection(
+                section_key="store_settings",
+                section_type="store_settings",
+                is_active=True,
+                content={
+                    "defaultShippingFee": 60,
+                    "freeShippingThreshold": 1500,
+                    "governorateFees": {"cairo": 25, "alexandria": 90},
+                },
+            )
+        )
+        db.session.commit()
+
+    payload = checkout_payload(pid)
+    payload["shipping"]["governorateKey"] = "cairo"
+    cairo = client.post("/api/v1/orders/checkout", json=payload).get_json()["data"]
+    assert cairo["shippingCost"] == 25.0
+
+    payload["shipping"]["governorateKey"] = "alexandria"
+    alexandria = client.post("/api/v1/orders/checkout", json=payload).get_json()["data"]
+    assert alexandria["shippingCost"] == 90.0
+
+    # محافظة بلا سعر مخصص تستخدم الرسوم الافتراضية.
+    payload["shipping"]["governorateKey"] = "aswan"
+    aswan = client.post("/api/v1/orders/checkout", json=payload).get_json()["data"]
+    assert aswan["shippingCost"] == 60.0
+
+
 def test_checkout_rejects_flat_shipping_payload(client):
     """الحقول المسطّحة يجب أن تُرفض — العقد يتطلب كائن shipping متداخلاً."""
     pid = product_id(client, "luminous-glow-serum")

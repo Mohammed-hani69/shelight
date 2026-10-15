@@ -1,5 +1,4 @@
 export { HeroCarousel } from './hero-carousel'
-export { BrandPromise } from './brand-promise'
 export { FeaturedCategories } from './featured-categories'
 export { RoutineBundles } from './routine-bundles'
 export { BestSellers } from './best-sellers'

@@ -41,7 +41,7 @@ export function ProductGrid({
 
 function cnGrid(className?: string) {
   return [
-    'grid grid-cols-2 gap-3 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-5',
+    'grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4',
     className,
   ].join(' ')
 }

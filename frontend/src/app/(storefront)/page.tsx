@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import {
   HeroCarousel,
-  BrandPromise,
   RoutineBundles,
   BestSellers,
   EditorialBanner,
@@ -34,7 +33,6 @@ export default function HomePage() {
     <>
       <HeroCarousel />
       <BestSellers />
-      <BrandPromise />
       <RoutineBundles />
       <EditorialBanner />
       <WhyChoose />

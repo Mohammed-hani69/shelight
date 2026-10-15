@@ -6,6 +6,7 @@ import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { LanguageToggle } from '@/components/navigation/language-toggle'
+import { SocialLinks } from '@/components/layout/social-links'
 import { productService } from '@/features/products/services/product-service'
 import type { Category } from '@/types/product'
 import { useAuthStore } from '@/store/auth-store'
@@ -135,10 +136,13 @@ export function Footer() {
         ))}
       </div>
 
-      <div className="border-t border-border py-5">
-        <div className="container-shelight flex flex-col items-center justify-between gap-2 text-xs text-muted sm:flex-row">
-          <p>© {year} SHE LIGHT. {t.footer.rights}</p>
-          <p>{t.footer.crafted}</p>
+      <div className="border-t border-border py-6">
+        <div className="container-shelight flex flex-col items-center gap-4">
+          <SocialLinks />
+          <div className="flex w-full flex-col items-center justify-between gap-2 text-xs text-muted sm:flex-row">
+            <p>© {year} SHE LIGHT. {t.footer.rights}</p>
+            <p>{t.footer.crafted}</p>
+          </div>
         </div>
       </div>
     </footer>
