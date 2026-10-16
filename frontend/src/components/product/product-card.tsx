@@ -34,7 +34,7 @@ export function ProductCard({ product, className, showAddToCart = true }: Produc
     >
       <Link
         href={`/products/${product.slug}`}
-        className="relative block aspect-[4/3] overflow-hidden bg-cream-dark/50"
+        className="relative block aspect-square overflow-hidden bg-cream-dark/50"
         aria-label={product.name}
       >
         {product.images[0] && (
@@ -44,7 +44,7 @@ export function ProductCard({ product, className, showAddToCart = true }: Produc
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             className={cn(
-              'object-contain transition-transform duration-500 group-hover:scale-[1.03]',
+              'object-cover transition-transform duration-500 group-hover:scale-[1.03]',
               isOut && 'opacity-60'
             )}
           />
