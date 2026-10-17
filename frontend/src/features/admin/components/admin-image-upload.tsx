@@ -14,6 +14,7 @@ interface AdminImageUploadProps {
   label: string
   value: string
   onChange: (value: string) => void
+  uploadImage?: (file: File) => Promise<string>
   onUploadingChange?: (uploading: boolean) => void
 }
 
@@ -22,6 +23,7 @@ export function AdminImageUpload({
   label,
   value,
   onChange,
+  uploadImage = (file) => adminApi.uploadProductImage(file),
   onUploadingChange,
 }: AdminImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -39,7 +41,7 @@ export function AdminImageUpload({
     setUploading(true)
     onUploadingChange?.(true)
     try {
-      onChange(await adminApi.uploadProductImage(file))
+      onChange(await uploadImage(file))
       toast.success('تم رفع الصورة')
     } catch (error) {
       toast.error(friendlyMessage(error))

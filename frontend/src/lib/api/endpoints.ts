@@ -57,6 +57,9 @@ export const endpoints = {
   storefrontSections: {
     section: (key: string) => `/storefront/sections/${encodeURIComponent(key)}`,
   },
+  storefrontPages: {
+    page: (key: string) => `/storefront/pages/${encodeURIComponent(key)}`,
+  },
   orders: {
     list: '/orders',
     checkout: '/orders/checkout',
@@ -69,6 +72,8 @@ export const endpoints = {
     login: '/admin/login',
     dashboard: '/admin/dashboard',
     storeSettings: '/admin/store-settings',
+    storefrontPage: (key: string) => `/admin/storefront/pages/${encodeURIComponent(key)}`,
+    uploadStorefrontPageImage: (key: string) => `/admin/storefront/pages/${encodeURIComponent(key)}/image`,
     products: '/admin/products',
     product: (id: string) => `/admin/products/${id}`,
     uploadProductImage: '/admin/products/upload',

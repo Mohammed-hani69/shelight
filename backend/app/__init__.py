@@ -13,12 +13,14 @@ from flask_cors import CORS
 
 from app.config import config_map, validate_production_secrets
 from app.core.errors import register_error_handlers
+from app.core.request import AppRequest
 from app.extensions import db, jwt, migrate
 
 
 def create_app(config_name: str | None = None) -> Flask:
     """ينشئ التطبيق ويسجّل الامتدادات والبلوبريانت ومعالجات الأخطاء."""
     app = Flask(__name__)
+    app.request_class = AppRequest
     config_name = config_name or os.getenv("FLASK_ENV", "development")
     app.config.from_object(config_map[config_name])
     if config_name == "production":

@@ -10,6 +10,7 @@ from app.core.security import admin_required
 from app.extensions import db
 from app.models import Product, StorefrontSection
 from app.modules.products.schemas import ProductListOut
+from app.modules.products.upload import save_uploaded_image
 from app.modules.marketing_sections.store_settings import (
     GOVERNORATE_KEYS,
     get_store_settings,
@@ -21,6 +22,10 @@ public_bp = Blueprint("storefront_sections", __name__, url_prefix="/storefront/s
 admin_bp = Blueprint("storefront_sections_admin", __name__, url_prefix="/admin/storefront/sections")
 settings_public_bp = Blueprint("store_settings", __name__, url_prefix="/storefront/settings")
 settings_admin_bp = Blueprint("store_settings_admin", __name__, url_prefix="/admin/store-settings")
+pages_public_bp = Blueprint("site_pages", __name__, url_prefix="/storefront/pages")
+pages_admin_bp = Blueprint("site_pages_admin", __name__, url_prefix="/admin/storefront/pages")
+
+SITE_PAGE_KEYS = {"about", "contact", "shipping-returns", "faq"}
 
 
 class SocialLinksSchema(Schema):
@@ -41,6 +46,95 @@ class StoreSettingsSchema(Schema):
     announcementEn = fields.Str(required=True, validate=validate.Length(max=240))
     whatsappPhone = fields.Str(load_default="", validate=validate.Length(max=32))
     socialLinks = fields.Nested(SocialLinksSchema, load_default=dict)
+
+
+class SitePageItemSchema(Schema):
+    title = fields.Str(required=True, validate=validate.Length(min=1, max=200))
+    body = fields.Str(required=True, validate=validate.Length(max=5000))
+    detail = fields.Str(load_default="", validate=validate.Length(max=1000))
+    kind = fields.Str(load_default="", validate=validate.OneOf(("", "phone", "email", "location", "clock")))
+
+
+class SitePageWriteSchema(Schema):
+    eyebrow = fields.Str(required=True, validate=validate.Length(max=160))
+    title = fields.Str(required=True, validate=validate.Length(min=1, max=200))
+    description = fields.Str(required=True, validate=validate.Length(max=2000))
+    imageUrl = fields.Str(load_default="", validate=validate.Length(max=500))
+    imageAlt = fields.Str(load_default="", validate=validate.Length(max=300))
+    items = fields.List(
+        fields.Nested(SitePageItemSchema),
+        load_default=list,
+        validate=validate.Length(max=50),
+    )
+
+
+def _require_uploaded_site_page_image(image_url: str) -> None:
+    if image_url and not image_url.startswith("/uploads/site-pages/"):
+        raise ApiError(
+            "يجب اختيار الصورة من خلال رفعها إلى الموقع.",
+            status_code=400,
+            code="site_page_image_must_be_uploaded",
+        )
+
+
+def _site_page_section(page_key: str) -> StorefrontSection | None:
+    if page_key not in SITE_PAGE_KEYS:
+        raise ApiError("الصفحة المطلوبة غير موجودة", status_code=404, code="not_found")
+    return StorefrontSection.query.filter_by(section_key=f"page_{page_key}").first()
+
+
+def _site_page_payload(page_key: str, section: StorefrontSection | None) -> dict | None:
+    if section is None:
+        return None
+    content = dict(section.content or {})
+    image_url = content.get("imageUrl", "")
+    if image_url and not image_url.startswith("/uploads/site-pages/"):
+        content["imageUrl"] = ""
+    return {"key": page_key, **content}
+
+
+@pages_public_bp.get("/<page_key>")
+def get_public_site_page(page_key: str):
+    section = _site_page_section(page_key)
+    return jsonify({"data": _site_page_payload(page_key, section)})
+
+
+@pages_admin_bp.get("/<page_key>")
+@admin_required()
+def get_admin_site_page(page_key: str):
+    section = _site_page_section(page_key)
+    return jsonify({"data": _site_page_payload(page_key, section)})
+
+
+@pages_admin_bp.put("/<page_key>")
+@admin_required()
+def save_admin_site_page(page_key: str):
+    section = _site_page_section(page_key)
+    try:
+        content = SitePageWriteSchema().load(request.get_json(silent=True) or {})
+    except ValidationError as error:
+        raise ApiError("محتوى الصفحة غير صالح", status_code=400, code="invalid_site_page") from error
+    _require_uploaded_site_page_image(content["imageUrl"])
+
+    if section is None:
+        section = StorefrontSection(section_key=f"page_{page_key}", section_type="site_page")
+    section.content = content
+    section.is_active = True
+    db.session.add(section)
+    db.session.commit()
+    return jsonify({"data": _site_page_payload(page_key, section)})
+
+
+@pages_admin_bp.post("/<page_key>/image")
+@admin_required()
+def upload_site_page_image(page_key: str):
+    if page_key not in SITE_PAGE_KEYS:
+        raise ApiError("الصفحة المطلوبة غير موجودة", status_code=404, code="not_found")
+    path = save_uploaded_image(
+        subdir="site-pages",
+        max_bytes_key="BANNER_MAX_BYTES",
+    )
+    return jsonify({"data": {"path": path}}), 201
 
 
 @settings_public_bp.get("")

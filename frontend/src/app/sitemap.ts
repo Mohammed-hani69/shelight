@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = productsResult.status === 'fulfilled' ? productsResult.value : []
   const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : []
   const articles = articlesResult.status === 'fulfilled' ? articlesResult.value : []
-  const staticPaths = ['', '/shop', '/about', '/contact', '/journal']
+  const staticPaths = ['', '/shop', '/about', '/contact', '/shipping-returns', '/faq', '/journal']
 
   return [
     ...staticPaths.map((path) => ({ url: new URL(path, config.site.url).toString() })),

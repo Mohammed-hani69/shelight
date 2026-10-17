@@ -87,16 +87,9 @@ def save_uploaded_image(*, subdir: str, max_bytes_key: str) -> str:
     # السقف العام 64KB مخصص لطلبات JSON، وصورة منتج حقيقية تتجاوزه ببساطة،
     # فلولا رفع السقف لكان `413` على كل صورة عادية.
     #
-    # نستخدم `request.max_content_length` — قابل للضبط لكل طلب في Flask 3.1 —
-    # بدل تعديل `current_app.config["MAX_CONTENT_LENGTH"]` المشترك. تعديل
-    # الإعدادات المشتركة كان معطوباً على ثلاث وجوه:
-    #   1. `admin_required` يقرأ جسم الطلب قبل الدخول إلى جسم الدالة، فيُطبَّق
-    #      السقف العام أولاً ويُرفض كل صورة أكبر من 64KB بـ`413`.
-    #   2. الإعداد حالة مشتركة بين الخيوط: طلب JSON يصل أثناء رفعٍ جارٍ يقرأ
-    #      سقفاً مرفوعاً بالخطأ (سباق بيانات).
-    #   3. رفع السقف كان ملفوفاً بـ`finally`، فاستثناء أثناء القراءة كان
-    #      يُبتلع بدل أن يتحول إلى رد مناسب.
-    request.max_content_length = current_app.config[max_bytes_key]
+    # يوضع السقف في بيئة هذا الطلب فقط حتى يعمل على Flask 3.0 و3.1 دون
+    # تعديل إعداد مشترك بين الطلبات أو قراءة multipart قبل تطبيق السقف.
+    request.environ["shelight.max_content_length"] = current_app.config[max_bytes_key]
     received = request.files.get("file")
 
     if received is None or not received.filename:

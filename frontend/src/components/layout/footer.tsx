@@ -72,8 +72,8 @@ export function Footer() {
       links: [
         { label: t.footer.trackOrder, href: '/track-order' },
         { label: t.nav.myAccount, href: isAuthenticated ? '/account' : '/login' },
-        { label: t.footer.shippingReturns, href: '/contact' },
-        { label: t.footer.faq, href: '/contact' },
+        { label: t.footer.shippingReturns, href: '/shipping-returns' },
+        { label: t.footer.faq, href: '/faq' },
       ],
     },
     {

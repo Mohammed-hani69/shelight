@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { ProductCarousel } from '@/components/product/product-carousel'
+import { ProductGrid } from '@/components/product/product-grid'
 import { Button } from '@/components/ui/button'
 import { productService } from '@/features/products/services/product-service'
 import type { Product } from '@/types/product'
@@ -37,7 +38,12 @@ export function BestSellers() {
           title={t.marketing.bestSellersTitle}
           subtitle={t.marketing.bestSellersSub}
         />
-        <ProductCarousel products={products} />
+        <div className="md:hidden">
+          <ProductGrid products={products} />
+        </div>
+        <div className="hidden md:block">
+          <ProductCarousel products={products} />
+        </div>
         <div className="mt-8 text-center">
           <Button asChild variant="outline">
             <Link href="/shop?sort=popularity">{t.marketing.viewAllBestsellers}</Link>
