@@ -27,7 +27,9 @@ class Config:
         hours=int(os.getenv("JWT_REFRESH_HOURS", "72"))
     )
     JWT_ALGORITHM = "HS256"
-    BOSTA_API_URL = os.getenv("BOSTA_API_URL", "").rstrip("/")
+    SARIEE_API_URL = os.getenv(
+        "SARIEE_API_URL", "https://api.shipping.sariee.com"
+    ).rstrip("/")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # بعد الـ commit تبقى الكائنات صالحة للقراءة، فلا يعيد كل استعلام
     # بناء تحميل ما بعد الحفظ.
@@ -44,20 +46,6 @@ class Config:
         ).split(",")
         if origin.strip()
     ]
-    # --- Webhooks مزوّدي الشحن -------------------------------------------
-    # Bosta لا ترسل توقيعاً (HMAC): التحقق يتم عبر ترويسة مخصّصة يختار
-    # التاجر اسمها وقيمتها في لوحة Bosta (Settings -> API Integration ->
-    # Set Up Your Webhook) أو عبر `webhookCustomHeaders` عند إنشاء الشحنة.
-    #   https://docs.bosta.co/docs/how-to/get-delivery-status-via-webhook/
-    # قيمتها مطلوبة: بدونها يُرفض كل طلب (fail closed) ولا يُقبل أن يكون
-    # مجرد الوصول إلى الـ endpoint دليلاً على أن المُرسِل هو Bosta.
-    BOSTA_WEBHOOK_AUTH_TOKEN = os.getenv("BOSTA_WEBHOOK_AUTH_TOKEN", "").strip()
-    # اسم الترويسة كما سُجّل في لوحة Bosta (قيمة مقترحة فقط، وليست عقداً
-    # من Bosta): يجب أن يطابق الاسم المُدخل في اللوحة حرفياً، ولا تُقبل
-    # أسماء بديلة إن اختلفت.
-    BOSTA_WEBHOOK_AUTH_HEADER = os.getenv(
-        "BOSTA_WEBHOOK_AUTH_HEADER", "X-Bosta-Webhook-Token"
-    ).strip()
     PAGINATION_PAGE_SIZE = int(os.getenv("PAGINATION_PAGE_SIZE", "12"))
     # سقف لعناصر السلة والمفضلة حتى لا تُحمَّل مجموعات غير محدودة.
     MAX_COLLECTION_ITEMS = int(os.getenv("MAX_COLLECTION_ITEMS", "100"))
@@ -81,6 +69,7 @@ class Config:
     # العريضة، والخلط كان يجعل حدّاً واحداً غير مضبوط لأي منهما.
     BANNER_MAX_BYTES = int(os.getenv("BANNER_MAX_BYTES", str(5 * 1024 * 1024)))
     PRODUCT_MAX_BYTES = int(os.getenv("PRODUCT_MAX_BYTES", str(8 * 1024 * 1024)))
+    VIDEO_MAX_BYTES = int(os.getenv("VIDEO_MAX_BYTES", str(100 * 1024 * 1024)))
     ALLOWED_IMAGE_EXTENSIONS = {
         "png",
         "jpg",

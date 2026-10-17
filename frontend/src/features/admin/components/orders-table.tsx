@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Package, Eye, Trash2 } from 'lucide-react'
+import { Package, Eye, Trash2, Truck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/features/admin/components/error-state'
@@ -45,6 +45,7 @@ export function OrdersTable() {
   const [error, setError] = useState<string | null>(null)
   const [updating, setUpdating] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [shippingOrderNumber, setShippingOrderNumber] = useState<string | null>(null)
 
   const load = async (status = statusFilter) => {
     setLoading(true)
@@ -111,6 +112,63 @@ export function OrdersTable() {
     }
   }
 
+  const createSarieeDraft = async (order: AdminOrder) => {
+    setShippingOrderNumber(order.orderNumber)
+    try {
+      const shipment = await adminApi.createSarieeDraft(order.orderNumber)
+      setItems((previous) =>
+        previous.map((item) =>
+          item.id === order.id
+            ? {
+                ...item,
+                shipment: {
+                  provider: 'sariee',
+                  status: 'draft',
+                  shipmentId: shipment.sarieeOrderId,
+                  trackingNumber: null,
+                  updatedAt: new Date().toISOString(),
+                },
+              }
+            : item
+        )
+      )
+      toast.success('تم إنشاء مسودة الشحنة في سريع')
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setShippingOrderNumber(null)
+    }
+  }
+
+  const activateSarieeOrder = async (order: AdminOrder) => {
+    setShippingOrderNumber(order.orderNumber)
+    try {
+      const shipment = await adminApi.activateSarieeOrder(order.orderNumber)
+      setItems((previous) =>
+        previous.map((item) =>
+          item.id === order.id
+            ? {
+                ...item,
+                shipment: {
+                  ...item.shipment,
+                  provider: 'sariee',
+                  status: 'active',
+                  shipmentId: shipment.sarieeOrderId,
+                  trackingNumber: shipment.trackingNumber ?? null,
+                  updatedAt: new Date().toISOString(),
+                },
+              }
+            : item
+        )
+      )
+      toast.success('تم تفعيل الشحنة في سريع')
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setShippingOrderNumber(null)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -147,7 +205,7 @@ export function OrdersTable() {
       ) : (
         <div className="overflow-hidden rounded-xl border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-right text-sm">
+            <table className="w-full min-w-[1000px] text-right text-sm">
               <thead>
                 <tr className="border-b border-border text-xs text-muted">
                   <th className="px-4 py-3 font-medium">رقم الطلب</th>
@@ -225,22 +283,56 @@ export function OrdersTable() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3">
-                        <Button asChild variant="outline" size="sm" className="gap-1.5">
-                          <Link href={`/admin/orders/${order.orderNumber}`}>
-                            <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                            التفاصيل
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`حذف الطلب ${order.orderNumber}`}
-                          title="حذف الطلب"
-                          disabled={deletingId === order.id}
-                          onClick={() => void deleteOrder(order)}
-                        >
-                          {deletingId === order.id ? <span className="text-xs">…</span> : <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />}
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button asChild variant="outline" size="sm" className="gap-1.5">
+                            <Link href={`/admin/orders/${order.orderNumber}`}>
+                              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                              التفاصيل
+                            </Link>
+                          </Button>
+                          {(!order.shipment?.provider || order.shipment.provider === 'sariee') &&
+                            (order.shipment?.status === 'draft' ? (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="gap-1.5"
+                                disabled={shippingOrderNumber !== null}
+                                onClick={() => void activateSarieeOrder(order)}
+                              >
+                                <Truck className="h-3.5 w-3.5" aria-hidden="true" />
+                                {shippingOrderNumber === order.orderNumber ? 'جارٍ التفعيل…' : 'تفعيل الشحنة'}
+                              </Button>
+                            ) : order.shipment?.shipmentId ? (
+                              <span className="text-xs text-muted">
+                                {order.shipment.trackingNumber
+                                  ? `سريع · ${order.shipment.trackingNumber}`
+                                  : `سريع · ${order.shipment.status ?? 'تم الإرسال'}`}
+                              </span>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="gap-1.5"
+                                disabled={shippingOrderNumber !== null}
+                                onClick={() => void createSarieeDraft(order)}
+                              >
+                                <Truck className="h-3.5 w-3.5" aria-hidden="true" />
+                                {shippingOrderNumber === order.orderNumber ? 'جارٍ الإرسال…' : 'إرسال إلى سريع'}
+                              </Button>
+                            ))}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`حذف الطلب ${order.orderNumber}`}
+                            title="حذف الطلب"
+                            disabled={deletingId === order.id}
+                            onClick={() => void deleteOrder(order)}
+                          >
+                            {deletingId === order.id ? <span className="text-xs">…</span> : <Trash2 className="h-4 w-4 text-danger" aria-hidden="true" />}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   )

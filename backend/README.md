@@ -56,6 +56,7 @@ app/
 | Bundles | `GET/POST /admin/bundles`, `GET/PUT/PATCH/DELETE /admin/bundles/<id>`, `POST /admin/bundles/<id>/move` |
 | Journal | `GET/POST /admin/journal`, `GET/PUT/PATCH/DELETE /admin/journal/<id>` (PATCH toggles isFeatured/isPublished) |
 | Orders | `GET /admin/orders`, `GET/PATCH /admin/orders/<orderNumber>` (status + paymentStatus) |
+| Sariee shipping | `GET/PUT /admin/shipping/sariee/settings`, `GET /admin/shipping/sariee/orders`, `POST /admin/shipping/sariee/orders/<orderNumber>/draft|activate` |
 | Coupons | `GET/POST /admin/coupons`, `PATCH/DELETE /admin/coupons/<id>` |
 | Customers | `GET /admin/customers`, `PATCH /admin/customers/<id>` (isActive, loyaltyPoints) |
 | Analytics | `GET /admin/analytics/overview|funnel|abandoned-carts|visitors`, `GET /admin/analytics/customers/<id>/timeline`, `GET /admin/analytics/visitors/<id>/timeline`, `POST /admin/analytics/run-abandonment` |
@@ -65,38 +66,25 @@ block (`provider`, `shipmentId`, `trackingNumber`, `status`, `updatedAt`) for
 the shipment panel in the order detail page. The storefront `OrderOut` does
 **not** include it — carrier internals are not customer-facing.
 
-## Shipping webhooks (`/api/webhooks/*`)
+## Sariee shipping integration
 
-`POST /api/webhooks/bosta` sits outside `/api/v1` and outside the admin
-blueprint, so it needs no JWT: the caller is Bosta's server, not a dashboard
-user. Authentication is the official Bosta mechanism — a custom header whose
-name *and* value the merchant sets in the Bosta dashboard
-(Settings → API Integration → Set Up Your Webhook). Bosta does **not** send an
-HMAC signature, so none is invented here.
+The admin page `/admin/shipping/sariee` stores the API key encrypted at rest,
+the pickup location ID, and the default shipment weight. The API key is never
+returned in full. Configure `SARIEE_API_URL` on the backend (defaults to
+`https://api.shipping.sariee.com`).
 
-| Env | Purpose |
-|---|---|
-| `BOSTA_WEBHOOK_AUTH_HEADER` | Header name as registered in Bosta (suggested default `X-Bosta-Webhook-Token`) |
-| `BOSTA_WEBHOOK_AUTH_TOKEN` | The shared secret value |
+- `POST /api/v1/admin/shipping/sariee/orders/<orderNumber>/draft` creates a
+  Sariee draft from the order's recipient, address, COD/payment amount, item
+  count, and configured default weight.
+- `POST /api/v1/admin/shipping/sariee/orders/<orderNumber>/activate` activates
+  the draft using the configured pickup location ID.
+- `GET/PUT /api/v1/admin/shipping/sariee/settings` reads and saves credentials
+  and integration settings; `GET /api/v1/admin/shipping/sariee/orders` lists
+  saved Sariee shipments.
 
-Behavior:
-
-- **Fail closed.** No token configured → `503 webhook_not_configured`, never `200`. Missing/wrong header → `401`. Only the configured header name is accepted; no invented fallback names.
-- Verification runs **before** the body is read, so an unauthenticated caller learns nothing about payload parsing.
-- Body capped at 64KB (`413`); unknown JSON fields are ignored so a future Bosta field cannot break ingestion.
-- Both `_id` and `trackingNumber` identify the shipment; the order is matched on `shipping_provider_order_id` first, then `tracking_number`. Neither → `400`.
-- `state` is required and must be numeric (`400` otherwise) — an event without a state describes nothing, and a `200` that silently skips the update would hide an integration bug.
-- Unknown shipment or unknown state code → `200` with `outcome: unknown_shipment` / `unknown_status` and a stored `webhook_events` row. Retrying cannot help, and a non-2xx would make Bosta retry forever.
-- **Idempotent** via a deterministic `event_id` over (provider, `_id`, tracking, state, timestamp) plus a unique index; duplicates return `200` without touching the order. Concurrent inserts are caught as `IntegrityError` → `duplicate`.
-- Shipment status is **forward-only** along `pending → picked_up → out_for_delivery → delivered`; a late/stale event cannot drag a delivered shipment backwards. Exceptions (`exception`, `lost`, `damaged`, …) are still recorded, but never overwrite a completed delivery.
-- Order status only advances (`pending|processing → shipped → delivered`). Cancelling/returning/lost **never** auto-cancel an order — that is a commercial decision with stock and refund consequences, so it stays with the dashboard. `payment_status` is never touched (cash-on-delivery settles manually).
-- Secrets, headers, and full payloads are never logged; the schema-validation log records failing **field names** only, and marshmallow errors (which can echo values) are not dumped.
-
-State codes come from the official table in
-`app/modules/shipping/bosta/states.py` (no invented codes; unknown codes are
-ignored rather than guessed). Code `41` is type-dependent by Bosta's own
-documentation — `SEND`/`FXF_SEND` means out for delivery, `CRP`/`RTO`/`EXCHANGE`
-means heading back to the merchant — so the mapper takes `state` **and** `type`.
+These are the documented create-draft and activate operations. Tracking lookup,
+cancellation, and pickup-location discovery are not implemented because the
+provided Sariee API documentation does not describe those endpoints.
 
 ## Journey tracking (`/api/v1/tracking/*`)
 
@@ -124,8 +112,12 @@ First-party, config-gated (`TRACKING_ENABLED`, `ABANDONED_CART_THRESHOLD_MINUTES
 #   c8d5e2f3a4b6 → d1e4b5c6a7f8 (banners)
 #   f1c7a9d2e4b6 (phone accounts + customers.address, mergepoint)
 #   c4e8a1b6d9f2 (merge: folds d9b3f59c8a12 into the main line)
-#   b7d2e5f8a1c3 (webhook_events)
-flask --app run.py db upgrade        # verify head: b7d2e5f8a1c3
+#   b7d2e5f8a1c3 (webhook event history)
+#   e1c9a7b5d3f2 (mobile banner image)
+#   f2a8c6d4e1b9 (storefront sections)
+#   a6d4f2c8b1e7 (homepage review flag)
+#   b3e7a1c9d5f2 (remove old Bosta settings + Sariee default weight)
+flask --app run.py db upgrade        # verify head: b3e7a1c9d5f2
 flask --app run.py db current
 ```
 

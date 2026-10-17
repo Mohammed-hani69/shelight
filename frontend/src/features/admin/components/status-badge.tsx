@@ -30,6 +30,8 @@ const PAYMENT_STATUS_LABELS: Record<AdminPaymentStatus, string> = {
 }
 
 const SHIPMENT_STATUS_STYLES: Record<AdminShipmentStatus, string> = {
+  draft: 'bg-muted/60 text-charcoal',
+  active: 'bg-sky-100 text-sky-700',
   pending: 'bg-amber-100 text-amber-700',
   picked_up: 'bg-sky-100 text-sky-700',
   out_for_delivery: 'bg-indigo-100 text-indigo-700',
@@ -46,6 +48,8 @@ const SHIPMENT_STATUS_STYLES: Record<AdminShipmentStatus, string> = {
 }
 
 const SHIPMENT_STATUS_LABELS: Record<AdminShipmentStatus, string> = {
+  draft: 'مسودة',
+  active: 'نشطة',
   pending: 'في المستودع',
   picked_up: 'تم الاستلام',
   out_for_delivery: 'خرجت للتوصيل',

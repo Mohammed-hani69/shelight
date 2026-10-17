@@ -349,9 +349,9 @@ class ShippingProviderSettings(TimestampMixin, db.Model):
     default_delivery_type: Mapped[str | None] = mapped_column(String(80), nullable=True)
     default_package_type: Mapped[str | None] = mapped_column(String(80), nullable=True)
     default_shipping_fee: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0, nullable=False)
-
-
-BostaSettings = ShippingProviderSettings
+    default_weight_kg: Mapped[Decimal] = mapped_column(
+        Numeric(8, 3), default=1, nullable=False
+    )
 
 
 class OrderItem(db.Model):
@@ -757,7 +757,7 @@ class WebhookEvent(db.Model):
     ``UNIQUE`` فيُعتبر الطلب مكرراً ولا يُعاد تنفيذ أي تغيير على البيانات.
 
     `event_id` مشتقّ من محتوى الحدث نفسه (مزوّد + معرّف الشحنة + كود الحالة
-    + الطابع الزمني) لأن Bosta لا ترسل معرّفاً فريداً للحدث.
+    + الطابع الزمني).
     """
 
     __tablename__ = "webhook_events"

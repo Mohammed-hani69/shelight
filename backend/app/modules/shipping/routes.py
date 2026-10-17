@@ -1,205 +1,217 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 from flask import Blueprint, current_app, jsonify, request
+from marshmallow import Schema, ValidationError, fields, validate
 from sqlalchemy import func, select
 
 from app.core.errors import ApiError
-from app.core.schema import load_json_or_400
 from app.core.security import admin_required
 from app.extensions import db
-from app.models import Order, ShippingProviderSettings, WebhookEvent
-from app.modules.shipping.schemas import BostaSettingsSchema, BostaTestConnectionSchema
-from app.modules.shipping.service import ShippingService
+from app.models import Order, ShippingProviderSettings
+from app.modules.shipping.sariee import SarieeClient, extract_order_id
+from app.modules.shipping.service import decrypt_secret, encrypt_secret, mask_secret
 
-bp = Blueprint("shipping", __name__, url_prefix="/admin/shipping")
+bp = Blueprint("shipping", __name__, url_prefix="/admin/shipping/sariee")
 
 
-@bp.get("/bosta")
+class SarieeSettingsSchema(Schema):
+    apiKey = fields.Str(load_default="", validate=validate.Length(max=500))
+    pickupLocationId = fields.Str(required=True, validate=validate.Length(min=1, max=255))
+    defaultWeightKg = fields.Float(required=True, validate=validate.Range(min=0.01, max=1000))
+    enabled = fields.Bool(load_default=False)
+
+
+def _settings_record() -> ShippingProviderSettings | None:
+    return ShippingProviderSettings.query.filter_by(provider="sariee").first()
+
+
+def _settings_payload(record: ShippingProviderSettings | None) -> dict:
+    api_key = decrypt_secret(record.api_key_encrypted) if record else None
+    return {
+        "provider": "sariee",
+        "enabled": bool(record and record.enabled),
+        "apiConfigured": bool(api_key),
+        "apiKeyMasked": mask_secret(api_key) if api_key else "",
+        "pickupLocationId": record.default_pickup_location if record else "",
+        "defaultWeightKg": float(record.default_weight_kg) if record else 1.0,
+    }
+
+
+@bp.get("/settings")
 @admin_required()
-def get_bosta_settings():
-    data = ShippingService.get_provider_settings("bosta")
-    return jsonify({"data": data})
+def get_settings():
+    return jsonify({"data": _settings_payload(_settings_record())})
 
 
-@bp.get("/bosta/overview")
+@bp.put("/settings")
 @admin_required()
-def bosta_overview():
-    """ملخص شحنات Bosta المحلية وآخر أحداث webhook المسجلة."""
-    settings = ShippingProviderSettings.query.filter_by(provider="bosta").first()
+def save_settings():
+    try:
+        payload = SarieeSettingsSchema().load(request.get_json(silent=True) or {})
+    except ValidationError as error:
+        raise ApiError(
+            "إعدادات سريع غير صالحة",
+            status_code=400,
+            code="invalid_sariee_settings",
+            fields=error.messages,
+        ) from error
+
+    pickup_location_id = payload["pickupLocationId"].strip()
+    if not pickup_location_id:
+        raise ApiError(
+            "Pickup Location ID مطلوب.",
+            status_code=400,
+            code="missing_pickup_location",
+        )
+
+    record = _settings_record()
+    if record is None:
+        record = ShippingProviderSettings(provider="sariee")
+    api_key = payload["apiKey"].strip()
+    if api_key:
+        record.api_key_encrypted = encrypt_secret(api_key)
+    elif record.api_key_encrypted is None and payload["enabled"]:
+        raise ApiError("أدخل مفتاح API قبل تفعيل الربط.", status_code=400, code="missing_api_key")
+    record.default_pickup_location = pickup_location_id
+    record.default_weight_kg = Decimal(str(payload["defaultWeightKg"]))
+    record.enabled = payload["enabled"]
+    db.session.add(record)
+    db.session.commit()
+    return jsonify({"data": _settings_payload(record)})
+
+
+@bp.get("/orders")
+@admin_required()
+def list_sariee_orders():
     page = max(request.args.get("page", 1, type=int), 1)
     page_size = min(max(request.args.get("page_size", 25, type=int), 1), 100)
-    status = request.args.get("status")
-    query = Order.query.filter(Order.shipping_provider == "bosta")
-    if status:
-        query = query.filter(Order.shipping_status == status)
-
-    total_count = query.count()
-    shipments = (
-        query.order_by(Order.updated_at.desc(), Order.id.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-        .all()
+    query = select(Order).where(Order.shipping_provider == "sariee").order_by(
+        Order.updated_at.desc(), Order.id.desc()
     )
-    shipment_ids = [order.id for order in shipments]
-    events_by_order: dict[int, WebhookEvent] = {}
-    if shipment_ids:
-        events = db.session.execute(
-            select(WebhookEvent)
-            .where(WebhookEvent.provider == "bosta", WebhookEvent.order_id.in_(shipment_ids))
-            .order_by(WebhookEvent.created_at.desc(), WebhookEvent.id.desc())
-        ).scalars()
-        for event in events:
-            if event.order_id not in events_by_order:
-                events_by_order[event.order_id] = event
-
-    all_bosta_orders = Order.query.filter(Order.shipping_provider == "bosta")
-    delivered_count = all_bosta_orders.filter(Order.shipping_status == "delivered").count()
-    in_transit_count = all_bosta_orders.filter(
-        Order.shipping_status.in_(["picked_up", "out_for_delivery"])
-    ).count()
-    exception_count = all_bosta_orders.filter(
-        Order.shipping_status.in_(
-            [
-                "exception",
-                "failed",
-                "lost",
-                "damaged",
-                "returning",
-                "canceled",
-                "terminated",
-                "awaiting_action",
-            ]
-        )
-    ).count()
-    cod_unsettled = db.session.execute(
-        select(func.coalesce(func.sum(Order.total), 0)).where(
-            Order.shipping_provider == "bosta",
-            Order.shipping_status == "delivered",
-            Order.payment_method == "cod",
-            Order.payment_status == "pending",
-        )
+    total = db.session.execute(
+        select(func.count()).select_from(query.subquery())
     ).scalar_one()
-    delivered_value = db.session.execute(
-        select(func.coalesce(func.sum(Order.total), 0)).where(
-            Order.shipping_provider == "bosta", Order.shipping_status == "delivered"
-        )
-    ).scalar_one()
-    recent_events = (
-        WebhookEvent.query.filter_by(provider="bosta")
-        .order_by(WebhookEvent.created_at.desc(), WebhookEvent.id.desc())
-        .limit(12)
-        .all()
+    orders = db.session.execute(
+        query.offset((page - 1) * page_size).limit(page_size)
+    ).scalars().all()
+    return jsonify(
+        {
+            "data": [
+                {
+                    "orderNumber": order.order_number,
+                    "sarieeOrderId": order.shipping_provider_order_id,
+                    "trackingNumber": order.tracking_number,
+                    "status": order.shipping_status,
+                    "total": float(order.total),
+                    "updatedAt": order.updated_at.isoformat() if order.updated_at else None,
+                }
+                for order in orders
+            ],
+            "meta": {
+                "page": page,
+                "pageSize": page_size,
+                "total": total,
+                "totalPages": (total + page_size - 1) // page_size,
+            },
+        }
     )
 
+
+def _client_or_error() -> SarieeClient:
+    record = _settings_record()
+    api_key = decrypt_secret(record.api_key_encrypted) if record else None
+    if record is None or not record.enabled or not api_key:
+        raise ApiError(
+            "احفظ مفتاح سريع وفعّل الربط من إعدادات الشحن أولاً.",
+            status_code=400,
+            code="sariee_not_configured",
+        )
+    return SarieeClient(
+        api_key=api_key,
+        base_url=current_app.config["SARIEE_API_URL"],
+    )
+
+
+@bp.post("/orders/<order_number>/draft")
+@admin_required()
+def create_sariee_draft(order_number: str):
+    order = Order.query.filter_by(order_number=order_number).first()
+    if order is None:
+        raise ApiError("الطلب غير موجود.", status_code=404, code="order_not_found")
+    if order.shipping_provider_order_id:
+        raise ApiError("تم إنشاء شحنة لهذا الطلب بالفعل.", status_code=409, code="shipment_exists")
+
+    settings = _settings_record()
+    client = _client_or_error()
+    is_cod = order.payment_method == "cod"
+    payload = {
+        "customer_name": f"{order.shipping_first_name} {order.shipping_last_name}".strip(),
+        "customer_phone": order.shipping_phone,
+        "customer_address": order.shipping_address,
+        "governorate": order.shipping_governorate,
+        "city": order.shipping_city,
+        "total_amount": float(order.total),
+        "cod_amount": float(order.total) if is_cod else 0,
+        "is_cod": is_cod,
+        "cod_includes_shipping": True,
+        "weight_kg": float(settings.default_weight_kg),
+        "items_count": sum(item.quantity for item in order.items),
+        "notes": order.notes or "",
+    }
+    response = client.create_order(payload)
+    external_id = extract_order_id(response)
+    if external_id is None:
+        raise ApiError(
+            "أنشأت سريع الطلب لكن لم يرجع معرّف المسودة المتوقع؛ راجع لوحة سريع قبل إعادة المحاولة.",
+            status_code=502,
+            code="sariee_order_id_missing",
+        )
+
+    order.shipping_provider = "sariee"
+    order.shipping_provider_order_id = external_id
+    order.shipping_status = "draft"
+    db.session.commit()
+    return jsonify({"data": {"orderNumber": order.order_number, "sarieeOrderId": external_id, "status": "draft"}}), 201
+
+
+@bp.post("/orders/<order_number>/activate")
+@admin_required()
+def activate_sariee_order(order_number: str):
+    order = Order.query.filter_by(
+        order_number=order_number,
+        shipping_provider="sariee",
+    ).first()
+    if order is None or not order.shipping_provider_order_id:
+        raise ApiError("لا توجد مسودة سريع لهذا الطلب.", status_code=404, code="sariee_draft_not_found")
+    if order.shipping_status != "draft":
+        raise ApiError("لا يمكن تفعيل هذه الشحنة لأنها ليست مسودة.", status_code=409, code="sariee_order_not_draft")
+
+    settings = _settings_record()
+    if settings is None or not settings.default_pickup_location:
+        raise ApiError("أدخل Pickup Location ID في إعدادات سريع أولاً.", status_code=400, code="missing_pickup_location")
+    response = _client_or_error().activate_order(
+        order.shipping_provider_order_id,
+        settings.default_pickup_location,
+    )
+    order.shipping_status = "active"
+    tracking_number = response.get("tracking_number") or response.get("trackingNumber")
+    if isinstance(tracking_number, (str, int)):
+        order.tracking_number = str(tracking_number)
+    db.session.commit()
     return jsonify(
         {
             "data": {
-                "connection": {
-                    "enabled": bool(settings and settings.enabled),
-                    "apiConfigured": bool(settings and settings.api_key_encrypted),
-                    "apiUrlConfigured": bool(current_app.config.get("BOSTA_API_URL")),
-                    "webhookConfigured": bool(
-                        current_app.config.get("BOSTA_WEBHOOK_AUTH_TOKEN")
-                        and current_app.config.get("BOSTA_WEBHOOK_AUTH_HEADER")
-                    ),
-                },
-                "summary": {
-                    "shipmentCount": all_bosta_orders.count(),
-                    "deliveredCount": delivered_count,
-                    "inTransitCount": in_transit_count,
-                    "exceptionCount": exception_count,
-                    "deliveredOrderValue": float(delivered_value or 0),
-                    "codAwaitingPaymentUpdate": float(cod_unsettled or 0),
-                },
-                "shipments": [
-                    {
-                        "orderNumber": order.order_number,
-                        "shipmentId": order.shipping_provider_order_id,
-                        "trackingNumber": order.tracking_number,
-                        "status": order.shipping_status,
-                        "orderStatus": order.status,
-                        "paymentMethod": order.payment_method,
-                        "paymentStatus": order.payment_status,
-                        "total": float(order.total or 0),
-                        "updatedAt": order.updated_at.isoformat() if order.updated_at else None,
-                        "lastEvent": (
-                            {
-                                "stateCode": events_by_order[order.id].provider_state_code,
-                                "stateName": events_by_order[order.id].provider_state_name,
-                                "receivedAt": events_by_order[order.id].created_at.isoformat()
-                                if events_by_order[order.id].created_at
-                                else None,
-                            }
-                            if order.id in events_by_order
-                            else None
-                        ),
-                    }
-                    for order in shipments
-                ],
-                "recentEvents": [
-                    {
-                        "trackingNumber": event.tracking_number,
-                        "shipmentId": event.provider_event_id,
-                        "stateCode": event.provider_state_code,
-                        "stateName": event.provider_state_name,
-                        "status": event.internal_status,
-                        "outcome": event.outcome,
-                        "receivedAt": event.created_at.isoformat() if event.created_at else None,
-                    }
-                    for event in recent_events
-                ],
-                "pagination": {
-                    "page": page,
-                    "pageSize": page_size,
-                    "total": total_count,
-                    "pages": (total_count + page_size - 1) // page_size,
-                },
+                "orderNumber": order.order_number,
+                "sarieeOrderId": order.shipping_provider_order_id,
+                "trackingNumber": order.tracking_number,
+                "status": order.shipping_status,
             }
         }
     )
 
 
-@bp.post("/bosta")
-@admin_required()
-def create_bosta_settings():
-    payload = load_json_or_400(BostaSettingsSchema())
-    record = ShippingService.upsert_settings("bosta", payload)
-    return jsonify({"data": ShippingService.serialize_settings(record)}), 201
-
-
-@bp.put("/bosta")
-@admin_required()
-def update_bosta_settings():
-    payload = load_json_or_400(BostaSettingsSchema())
-    record = ShippingService.upsert_settings("bosta", payload)
-    return jsonify({"data": ShippingService.serialize_settings(record)})
-
-
-@bp.post("/bosta/test")
-@admin_required()
-def test_bosta_connection():
-    payload = load_json_or_400(BostaTestConnectionSchema(), partial=True)
-    result = ShippingService.test_connection("bosta", payload)
-    return jsonify({"data": result})
-
-
-@bp.post("/bosta/enable")
-@admin_required()
-def enable_bosta():
-    payload = request.get_json(silent=True) or {}
-    enabled = bool(payload.get("enabled", True))
-    settings = ShippingProviderSettings.query.filter_by(provider="bosta").first()
-    if enabled and (settings is None or not settings.api_key_encrypted):
-        raise ApiError("أضف مفتاح API قبل تفعيل الربط.", status_code=400)
-    return jsonify({"data": ShippingService.enable("bosta", enabled)})
-
-
-@bp.post("/bosta/disable")
-@admin_required()
-def disable_bosta():
-    return jsonify({"data": ShippingService.enable("bosta", False)})
-
-
 @bp.errorhandler(ApiError)
-def handle_api_error(error: ApiError):
-    return jsonify({"error": {"code": error.code or "api_error", "message": str(error)}}), error.status_code
+def handle_shipping_error(error: ApiError):
+    return jsonify({"error": {"code": error.code, "message": error.message}}), error.status_code

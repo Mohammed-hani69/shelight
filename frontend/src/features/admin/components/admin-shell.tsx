@@ -22,6 +22,7 @@ import {
   Store,
   TicketPercent,
   Users,
+  Video,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { label: 'الأقسام والفئات', href: '/admin/categories', Icon: FolderTree },
   { label: 'البنرات', href: '/admin/banners', Icon: ImageIcon },
   { label: 'أقسام واجهة المتجر', href: '/admin/storefront-sections', Icon: Megaphone },
+  { label: 'فيديوهات المتجر', href: '/admin/videos', Icon: Video },
   { label: 'محتوى صفحات الموقع', href: '/admin/site-pages', Icon: FileText },
   { label: 'تقييمات المنتجات', href: '/admin/reviews', Icon: MessageSquareText },
   { label: 'الباقات', href: '/admin/bundles', Icon: Gift },
@@ -43,7 +45,7 @@ const NAV_ITEMS = [
   { label: 'الطلبات', href: '/admin/orders', Icon: Package },
   { label: 'الكوبونات', href: '/admin/coupons', Icon: TicketPercent },
   { label: 'العملاء', href: '/admin/customers', Icon: Users },
-  { label: 'الإعدادات', href: '/admin/settings/shipping/bosta', Icon: Settings2 },
+  { label: 'الشحن - سريع', href: '/admin/shipping/sariee', Icon: Settings2 },
   { label: 'إعدادات المتجر', href: '/admin/settings/store', Icon: Store },
   { label: 'تحليلات الرحلة', href: '/admin/analytics', Icon: BarChart3 },
 ]

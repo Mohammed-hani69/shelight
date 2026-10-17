@@ -353,35 +353,37 @@ export const adminApi = {
     return apiClient.post<{ abandoned: number }>(endpoints.admin.analytics.runAbandonment)
   },
 
-  //----- إعدادات الشحن -----
-  async getBostaSettings(): Promise<Record<string, unknown>> {
-    return apiClient.get<Record<string, unknown>>(endpoints.admin.shipping.bosta)
+  //----- تكامل سريع -----
+  async getSarieeSettings(): Promise<SarieeSettings> {
+    return apiClient.get<SarieeSettings>(endpoints.admin.shipping.sarieeSettings)
   },
 
-  async getBostaOverview(page = 1, status?: string): Promise<BostaOverview> {
+  async saveSarieeSettings(payload: {
+    apiKey?: string
+    pickupLocationId: string
+    defaultWeightKg: number
+    enabled: boolean
+  }): Promise<SarieeSettings> {
+    return apiClient.put<SarieeSettings>(endpoints.admin.shipping.sarieeSettings, payload)
+  },
+
+  async listSarieeOrders(page = 1): Promise<{ items: SarieeOrder[]; meta?: BackendMeta }> {
     const query = new URLSearchParams({ page: String(page), page_size: '25' })
-    if (status) query.set('status', status)
-    return apiClient.get<BostaOverview>(`${endpoints.admin.shipping.bostaOverview}?${query}`)
+    return apiClient.getWithMeta<SarieeOrder[], BackendMeta>(
+      `${endpoints.admin.shipping.sarieeOrders}?${query}`,
+    )
   },
 
-  async saveBostaSettings(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    return apiClient.post<Record<string, unknown>>(endpoints.admin.shipping.bosta, payload)
+  async createSarieeDraft(orderNumber: string): Promise<SarieeShipmentResult> {
+    return apiClient.post<SarieeShipmentResult>(
+      endpoints.admin.shipping.createSarieeDraft(orderNumber),
+    )
   },
 
-  async updateBostaSettings(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    return apiClient.put<Record<string, unknown>>(endpoints.admin.shipping.bosta, payload)
-  },
-
-  async testBostaConnection(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    return apiClient.post<Record<string, unknown>>(endpoints.admin.shipping.testBosta, payload)
-  },
-
-  async enableBostaIntegration(): Promise<Record<string, unknown>> {
-    return apiClient.post<Record<string, unknown>>(endpoints.admin.shipping.enableBosta, { enabled: true })
-  },
-
-  async disableBostaIntegration(): Promise<Record<string, unknown>> {
-    return apiClient.post<Record<string, unknown>>(endpoints.admin.shipping.disableBosta, { enabled: false })
+  async activateSarieeOrder(orderNumber: string): Promise<SarieeShipmentResult> {
+    return apiClient.post<SarieeShipmentResult>(
+      endpoints.admin.shipping.activateSarieeOrder(orderNumber),
+    )
   },
 }
 
@@ -423,41 +425,27 @@ export interface AdminReview {
   showOnHome: boolean
 }
 
-export interface BostaOverview {
-  connection: {
-    enabled: boolean
-    apiConfigured: boolean
-    apiUrlConfigured: boolean
-    webhookConfigured: boolean
-  }
-  summary: {
-    shipmentCount: number
-    deliveredCount: number
-    inTransitCount: number
-    exceptionCount: number
-    deliveredOrderValue: number
-    codAwaitingPaymentUpdate: number
-  }
-  shipments: Array<{
-    orderNumber: string
-    shipmentId: string | null
-    trackingNumber: string | null
-    status: string | null
-    orderStatus: string
-    paymentMethod: string
-    paymentStatus: string
-    total: number
-    updatedAt: string | null
-    lastEvent: { stateCode: number | null; stateName: string | null; receivedAt: string | null } | null
-  }>
-  recentEvents: Array<{
-    trackingNumber: string | null
-    shipmentId: string | null
-    stateCode: number | null
-    stateName: string | null
-    status: string | null
-    outcome: string
-    receivedAt: string | null
-  }>
-  pagination: { page: number; pageSize: number; total: number; pages: number }
+export interface SarieeSettings {
+  provider: 'sariee'
+  enabled: boolean
+  apiConfigured: boolean
+  apiKeyMasked: string
+  pickupLocationId: string
+  defaultWeightKg: number
+}
+
+export interface SarieeOrder {
+  orderNumber: string
+  sarieeOrderId: string | null
+  trackingNumber: string | null
+  status: string | null
+  total: number
+  updatedAt: string | null
+}
+
+export interface SarieeShipmentResult {
+  orderNumber: string
+  sarieeOrderId: string
+  trackingNumber?: string | null
+  status: string
 }

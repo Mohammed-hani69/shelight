@@ -8,6 +8,7 @@ import {
   DoctorReviews,
   CustomerReviews,
 } from '@/components/marketing'
+import { VideoCarousel } from '@/components/marketing/video-carousel'
 import { config } from '@/config/site'
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default function HomePage() {
       <HeroCarousel />
       <BestSellers />
       <RoutineBundles />
+      <VideoCarousel />
       <EditorialBanner />
       <WhyChoose />
       <DoctorReviews />

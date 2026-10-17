@@ -58,7 +58,8 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = Object.fromEntries(
 )
 
 const PROVIDER_LABELS: Record<string, string> = {
-  bosta: 'Bosta',
+  bosta: 'بوسطة (بيانات سابقة)',
+  sariee: 'سريع',
   aramex: 'Aramex',
   fedex: 'FedEx',
   dhl: 'DHL',
@@ -183,6 +184,34 @@ export function OrderDetail({ orderNumber }: { orderNumber: string }) {
     if (!form || form.status === 'cancelled') return
     if (!window.confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) return
     void save({ status: 'cancelled' }, 'تم إلغاء الطلب')
+  }
+
+  const createSarieeDraft = async () => {
+    if (!order) return
+    setSaving(true)
+    try {
+      await adminApi.createSarieeDraft(order.orderNumber)
+      toast.success('تم إنشاء مسودة الشحنة في سريع')
+      await load()
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const activateSarieeOrder = async () => {
+    if (!order) return
+    setSaving(true)
+    try {
+      await adminApi.activateSarieeOrder(order.orderNumber)
+      toast.success('تم تفعيل الشحنة في سريع')
+      await load()
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) {
@@ -336,6 +365,28 @@ export function OrderDetail({ orderNumber }: { orderNumber: string }) {
                 <p className="border-t border-border px-4 py-2 text-xs text-muted">
                   الحالة تُحدَّث تلقائياً من إشعار مزوّد الشحن.
                 </p>
+              </section>
+            )}
+            {(!order.shipment || order.shipment.provider === 'sariee') && (
+              <section className="space-y-3 rounded-xl border border-border bg-surface p-4">
+                <h2 className="font-medium text-plum">إجراءات سريع</h2>
+                {!order.shipment ? (
+                  <>
+                    <p className="text-sm text-muted">أنشئ مسودة شحنة لهذا الطلب في حساب سريع.</p>
+                    <Button type="button" disabled={saving} onClick={() => void createSarieeDraft()}>
+                      إنشاء مسودة في سريع
+                    </Button>
+                  </>
+                ) : order.shipment.status === 'draft' ? (
+                  <>
+                    <p className="text-sm text-muted">المسودة جاهزة. سيتم استخدام Pickup Location ID المحفوظ في إعدادات سريع.</p>
+                    <Button type="button" disabled={saving} onClick={() => void activateSarieeOrder()}>
+                      تفعيل الشحنة
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted">حالة الشحنة: {order.shipment.status || '—'}</p>
+                )}
               </section>
             )}
           </div>

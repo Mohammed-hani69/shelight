@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, request
+import os
+from uuid import uuid4
+
+from flask import Blueprint, current_app, jsonify, request
 from marshmallow import Schema, ValidationError, fields, validate
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from werkzeug.utils import secure_filename
 
 from app.core.errors import ApiError
 from app.core.security import admin_required
@@ -24,8 +28,11 @@ settings_public_bp = Blueprint("store_settings", __name__, url_prefix="/storefro
 settings_admin_bp = Blueprint("store_settings_admin", __name__, url_prefix="/admin/store-settings")
 pages_public_bp = Blueprint("site_pages", __name__, url_prefix="/storefront/pages")
 pages_admin_bp = Blueprint("site_pages_admin", __name__, url_prefix="/admin/storefront/pages")
+videos_public_bp = Blueprint("storefront_videos", __name__, url_prefix="/storefront/videos")
+videos_admin_bp = Blueprint("storefront_videos_admin", __name__, url_prefix="/admin/storefront/videos")
 
 SITE_PAGE_KEYS = {"about", "contact", "shipping-returns", "faq"}
+VIDEO_SECTION_KEY = "homepage_videos"
 
 
 class SocialLinksSchema(Schema):
@@ -66,6 +73,120 @@ class SitePageWriteSchema(Schema):
         load_default=list,
         validate=validate.Length(max=50),
     )
+
+
+class VideoItemSchema(Schema):
+    title = fields.Str(required=True, validate=validate.Length(min=1, max=160))
+    url = fields.Str(required=True, validate=validate.Length(min=1, max=500))
+
+
+class VideoSectionWriteSchema(Schema):
+    isActive = fields.Bool(load_default=False)
+    title = fields.Str(load_default="", validate=validate.Length(max=160))
+    description = fields.Str(load_default="", validate=validate.Length(max=500))
+    videos = fields.List(
+        fields.Nested(VideoItemSchema),
+        load_default=list,
+        validate=validate.Length(max=30),
+    )
+
+
+def _video_section() -> StorefrontSection | None:
+    return StorefrontSection.query.filter_by(section_key=VIDEO_SECTION_KEY).first()
+
+
+def _video_section_payload(section: StorefrontSection | None) -> dict:
+    content = section.content if section and isinstance(section.content, dict) else {}
+    raw_videos = content.get("videos", [])
+    return {
+        "isActive": bool(section and section.is_active),
+        "title": content.get("title", ""),
+        "description": content.get("description", ""),
+        "videos": raw_videos if isinstance(raw_videos, list) else [],
+    }
+
+
+def _require_uploaded_videos(videos: list[dict]) -> None:
+    if any(not video["url"].startswith("/uploads/videos/") for video in videos):
+        raise ApiError(
+            "يجب رفع الفيديوهات إلى الموقع قبل إضافتها.",
+            status_code=400,
+            code="video_must_be_uploaded",
+        )
+
+
+@videos_public_bp.get("")
+def get_public_videos():
+    section = _video_section()
+    payload = _video_section_payload(section)
+    if not payload["isActive"]:
+        return jsonify({"data": None})
+    payload["videos"] = [
+        video for video in payload["videos"]
+        if isinstance(video, dict)
+        and isinstance(video.get("url"), str)
+        and video["url"].startswith("/uploads/videos/")
+    ]
+    return jsonify({"data": payload if payload["videos"] else None})
+
+
+@videos_admin_bp.get("")
+@admin_required()
+def get_admin_videos():
+    return jsonify({"data": _video_section_payload(_video_section())})
+
+
+@videos_admin_bp.put("")
+@admin_required()
+def save_admin_videos():
+    try:
+        content = VideoSectionWriteSchema().load(request.get_json(silent=True) or {})
+    except ValidationError as error:
+        raise ApiError("بيانات قسم الفيديوهات غير صالحة", status_code=400, code="invalid_video_section") from error
+    _require_uploaded_videos(content["videos"])
+
+    section = _video_section()
+    if section is None:
+        section = StorefrontSection(section_key=VIDEO_SECTION_KEY, section_type="video_carousel")
+    section.section_type = "video_carousel"
+    section.is_active = content["isActive"]
+    section.content = {
+        "title": content["title"],
+        "description": content["description"],
+        "videos": content["videos"],
+    }
+    db.session.add(section)
+    db.session.commit()
+    return jsonify({"data": _video_section_payload(section)})
+
+
+@videos_admin_bp.post("/upload")
+@admin_required()
+def upload_storefront_video():
+    request.environ["shelight.max_content_length"] = current_app.config["VIDEO_MAX_BYTES"]
+    uploaded = request.files.get("file")
+    if uploaded is None or not uploaded.filename:
+        raise ApiError("لم يتم اختيار فيديو", status_code=422, code="no_file")
+
+    head = uploaded.stream.read(32)
+    uploaded.stream.seek(0)
+    extension = None
+    if len(head) >= 8 and head[4:8] == b"ftyp":
+        extension = "mp4"
+    elif head.startswith(b"\x1aE\xdf\xa3"):
+        extension = "webm"
+    if extension is None:
+        raise ApiError(
+            "صيغة الفيديو غير مدعومة. ارفع فيديو MP4 أو WebM.",
+            status_code=422,
+            code="bad_video_type",
+        )
+
+    folder = os.path.join(current_app.config["UPLOAD_FOLDER"], "videos")
+    os.makedirs(folder, exist_ok=True)
+    filename = f"{uuid4().hex}.{extension}"
+    uploaded.save(os.path.join(folder, secure_filename(filename)))
+    return jsonify({"data": {"path": f"/uploads/videos/{filename}"}}), 201
 
 
 def _require_uploaded_site_page_image(image_url: str) -> None:

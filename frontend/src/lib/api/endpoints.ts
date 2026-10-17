@@ -60,6 +60,7 @@ export const endpoints = {
   storefrontPages: {
     page: (key: string) => `/storefront/pages/${encodeURIComponent(key)}`,
   },
+  storefrontVideos: '/storefront/videos',
   orders: {
     list: '/orders',
     checkout: '/orders/checkout',
@@ -74,6 +75,8 @@ export const endpoints = {
     storeSettings: '/admin/store-settings',
     storefrontPage: (key: string) => `/admin/storefront/pages/${encodeURIComponent(key)}`,
     uploadStorefrontPageImage: (key: string) => `/admin/storefront/pages/${encodeURIComponent(key)}/image`,
+    storefrontVideos: '/admin/storefront/videos',
+    uploadStorefrontVideo: '/admin/storefront/videos/upload',
     products: '/admin/products',
     product: (id: string) => `/admin/products/${id}`,
     uploadProductImage: '/admin/products/upload',
@@ -109,11 +112,12 @@ export const endpoints = {
       runAbandonment: '/admin/analytics/run-abandonment',
     },
     shipping: {
-      bosta: '/admin/shipping/bosta',
-      bostaOverview: '/admin/shipping/bosta/overview',
-      testBosta: '/admin/shipping/bosta/test',
-      enableBosta: '/admin/shipping/bosta/enable',
-      disableBosta: '/admin/shipping/bosta/disable',
+      sarieeSettings: '/admin/shipping/sariee/settings',
+      sarieeOrders: '/admin/shipping/sariee/orders',
+      createSarieeDraft: (orderNumber: string) =>
+        `/admin/shipping/sariee/orders/${encodeURIComponent(orderNumber)}/draft`,
+      activateSarieeOrder: (orderNumber: string) =>
+        `/admin/shipping/sariee/orders/${encodeURIComponent(orderNumber)}/activate`,
     },
   },
   storeSettings: '/storefront/settings',

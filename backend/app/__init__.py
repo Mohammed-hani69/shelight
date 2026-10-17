@@ -32,10 +32,8 @@ def create_app(config_name: str | None = None) -> Flask:
     CORS(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}})
 
     from app.api import api_v1
-    from app.modules.shipping.webhook import bp as shipping_webhook_bp
 
     app.register_blueprint(api_v1)
-    app.register_blueprint(shipping_webhook_bp)
 
     register_error_handlers(app)
     register_cli(app)

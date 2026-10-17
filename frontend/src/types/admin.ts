@@ -307,6 +307,8 @@ export interface AdminOrderShipping {
 
 /** حالة الشحنة كما يحدّدها webhook مزوّد الشحن (mapped داخلياً). */
 export type AdminShipmentStatus =
+  | 'draft'
+  | 'active'
   | 'pending'
   | 'picked_up'
   | 'out_for_delivery'

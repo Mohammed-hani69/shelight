@@ -20,6 +20,7 @@ from app.modules.marketing_sections.routes import admin_bp as sections_admin_bp
 from app.modules.marketing_sections.routes import public_bp as sections_public_bp
 from app.modules.marketing_sections.routes import pages_admin_bp, pages_public_bp
 from app.modules.marketing_sections.routes import settings_admin_bp, settings_public_bp
+from app.modules.marketing_sections.routes import videos_admin_bp, videos_public_bp
 from app.modules.orders.routes import bp as orders_bp
 from app.modules.products.routes import bp as products_bp
 from app.modules.reviews.routes import bp as reviews_bp
@@ -50,6 +51,8 @@ api_v1.register_blueprint(settings_public_bp)
 api_v1.register_blueprint(settings_admin_bp)
 api_v1.register_blueprint(pages_public_bp)
 api_v1.register_blueprint(pages_admin_bp)
+api_v1.register_blueprint(videos_public_bp)
+api_v1.register_blueprint(videos_admin_bp)
 api_v1.register_blueprint(tracking_bp)
 api_v1.register_blueprint(shipping_bp)
 api_v1.register_blueprint(analytics_bp)
