@@ -102,7 +102,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1" aria-label="تنقل لوحة التحكم">
+        <nav
+          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain"
+          aria-label="تنقل لوحة التحكم"
+        >
           {NAV_ITEMS.map(({ label, href, Icon }) => {
             const isActive =
               href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
@@ -126,7 +129,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="border-t border-border pt-4">
+        <div className="shrink-0 border-t border-border pt-4">
           <Link
             href="/"
             onClick={() => setMobileMenuOpen(false)}
