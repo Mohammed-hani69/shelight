@@ -67,7 +67,7 @@ export function TrackOrderForm({
       if (err instanceof ApiError && (err.status === 404 || err.status === 400)) {
         setError(t.tracking.notFound)
       } else {
-        setError(friendlyMessage(err))
+        setError(friendlyMessage(err, 'egyptian'))
       }
     } finally {
       setLoading(false)

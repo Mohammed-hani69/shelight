@@ -71,7 +71,7 @@ export function ProfileForm() {
           newsletter: profile.newsletter ?? true,
         })
       } catch (error) {
-        toast.error(friendlyMessage(error))
+        toast.error(friendlyMessage(error, 'egyptian'))
       } finally {
         setLoading(false)
       }
@@ -102,7 +102,7 @@ export function ProfileForm() {
       }
       toast.success(t.account.updatedToast)
     } catch (error) {
-      toast.error(friendlyMessage(error))
+      toast.error(friendlyMessage(error, 'egyptian'))
     }
   }
 

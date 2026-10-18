@@ -24,7 +24,7 @@ export function VideoCarousel() {
         if (active) setSection(content)
       })
       .catch(() => {
-        if (active) toast.error('تعذّر تحميل فيديوهات المتجر.')
+        if (active) toast.error('مش قادرين نحمّل فيديوهات المتجر دلوقتي.')
       })
     return () => {
       active = false

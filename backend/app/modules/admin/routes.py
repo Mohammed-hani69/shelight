@@ -4,15 +4,27 @@
 """
 from __future__ import annotations
 
+import secrets
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, create_refresh_token
+from marshmallow import Schema, fields, validate
 
 from app.core.errors import ApiError
 from app.core.pagination import page_params
 from app.core.schema import load_json_or_400
 from app.core.security import admin_required, verify_password
 from app.extensions import db
-from app.models import Bundle, Category, Coupon, Customer, JournalArticle, Order, Product
+from app.models import (
+    Bundle,
+    Category,
+    Coupon,
+    Customer,
+    JournalArticle,
+    Order,
+    Product,
+    ReferralLink,
+)
 from app.modules.admin import services as admin_service
 from app.modules.admin.schemas import (
     AdminCategoryMoveSchema,
@@ -224,6 +236,83 @@ def delete_order(order_number: str):
     db.session.delete(order)
     db.session.commit()
     return jsonify({"data": {"orderNumber": order_number}})
+
+
+class ReferralLinkCreateSchema(Schema):
+    inviterName = fields.Str(required=True, validate=validate.Length(min=2, max=200))
+    inviterPhone = fields.Str(required=True, validate=validate.Length(min=8, max=32))
+
+
+@bp.get("/referrals")
+@admin_required()
+def list_referrals():
+    """روابط الدعوة وطلبات الشراء المنسوبة لها."""
+    links = ReferralLink.query.order_by(ReferralLink.created_at.desc()).all()
+    referral_orders, meta = admin_service.list_referral_orders()
+    return jsonify(
+        {
+            "data": {
+                "links": [
+                    {
+                        "id": str(link.id),
+                        "code": link.code,
+                        "inviterName": link.inviter_name,
+                        "inviterPhone": link.inviter_phone,
+                        "createdAt": link.created_at.isoformat() if link.created_at else None,
+                    }
+                    for link in links
+                ],
+                "orders": [
+                    {
+                        "id": str(order.id),
+                        "inviterName": order.referral_link.inviter_name,
+                        "inviterPhone": order.referral_link.inviter_phone,
+                        "invitedName": " ".join(
+                            part
+                            for part in (order.shipping_first_name, order.shipping_last_name)
+                            if part
+                        ),
+                        "invitedPhone": order.shipping_phone,
+                        "orderNumber": order.order_number,
+                        "total": float(order.total),
+                        "status": order.status,
+                        "createdAt": order.created_at.isoformat() if order.created_at else None,
+                    }
+                    for order in referral_orders
+                ],
+            },
+            "meta": meta,
+        }
+    )
+
+
+@bp.post("/referrals")
+@admin_required()
+def create_referral():
+    """إنشاء رابط دعوة فريد لصاحبه."""
+    data = load_json_or_400(ReferralLinkCreateSchema())
+    inviter_name = data["inviterName"].strip()
+    inviter_phone = data["inviterPhone"].strip()
+    if len(inviter_name) < 2 or len(inviter_phone) < 8:
+        raise ApiError("اكتب اسم صاحب الدعوة ورقم موبايل صحيح", status_code=422)
+    link = ReferralLink(
+        code=secrets.token_urlsafe(18),
+        inviter_name=inviter_name,
+        inviter_phone=inviter_phone,
+    )
+    db.session.add(link)
+    db.session.commit()
+    return jsonify(
+        {
+            "data": {
+                "id": str(link.id),
+                "code": link.code,
+                "inviterName": link.inviter_name,
+                "inviterPhone": link.inviter_phone,
+                "createdAt": link.created_at.isoformat() if link.created_at else None,
+            }
+        }
+    ), 201
 
 
 # ---------------------------------------------------------------------------

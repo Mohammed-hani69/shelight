@@ -40,7 +40,7 @@ export function RegisterForm() {
       toast.success(t.auth.accountCreatedToast)
       router.push('/account')
     } catch (error) {
-      toast.error(friendlyMessage(error))
+      toast.error(friendlyMessage(error, 'egyptian'))
     } finally {
       setLoading(false)
     }

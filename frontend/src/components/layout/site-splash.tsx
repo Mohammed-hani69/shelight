@@ -47,7 +47,7 @@ export function SiteSplash() {
   return (
     <div
       role="status"
-      aria-label="جارٍ تحميل SHE LIGHT"
+      aria-label="بنحمّل شيلايت"
       className={`fixed inset-0 z-[100] flex min-h-[100svh] items-center justify-center bg-cream px-6 transition-opacity duration-300 ${
         closing ? 'pointer-events-none opacity-0' : 'opacity-100'
       }`}
@@ -62,7 +62,7 @@ export function SiteSplash() {
           className="site-splash-mark h-auto w-52 object-contain sm:w-60"
         />
         <p className="mt-2 font-display text-base font-medium text-plum sm:text-lg">
-          جمالك يبدأ من هنا
+          جمالك بيبدأ من هنا
         </p>
         <div className="mt-8 h-1 w-36 overflow-hidden rounded-full bg-border" aria-hidden="true">
           <span className="site-splash-progress block h-full w-full origin-right rounded-full bg-primary" />
@@ -72,7 +72,7 @@ export function SiteSplash() {
           onClick={dismiss}
           className="mt-5 min-h-11 px-4 text-sm text-muted transition-colors hover:text-plum"
         >
-          تخطي
+          تخطّي
         </button>
       </div>
     </div>

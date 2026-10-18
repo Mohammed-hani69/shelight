@@ -12,7 +12,7 @@ from app.core.security import hash_password
 from app.core.pagination import paginate
 from app.core.utils import normalize_phone, utcnow
 from app.extensions import db
-from app.models import CartItem, Customer, Order, OrderItem, Product
+from app.models import CartItem, Customer, Order, OrderItem, Product, ReferralLink
 from app.modules.coupons import services as coupon_service
 from app.modules.customers import services as customer_service
 from app.modules.tracking import services as tracking_service
@@ -71,6 +71,13 @@ def checkout(
     """
     rows, subtotal = _collect_items(data["items"])
 
+    referral_link = None
+    referral_code = (data.get("referralCode") or "").strip()
+    if referral_code:
+        referral_link = ReferralLink.query.filter_by(code=referral_code).first()
+        if referral_link is None:
+            raise ApiError("رابط الإحالة غير صالح، افتح رابط الدعوة من جديد", status_code=400)
+
     shipping = data["shipping"]
     store_settings = get_store_settings()
     governorate_key = shipping.get("governorateKey")
@@ -114,6 +121,7 @@ def checkout(
     order = Order(
         order_number=_next_order_number(),
         customer_id=customer.id if customer else None,
+        referral_link_id=referral_link.id if referral_link else None,
         guest_email=(data.get("email") or "").strip() or None,
         subtotal=subtotal,
         shipping_cost=shipping_cost,

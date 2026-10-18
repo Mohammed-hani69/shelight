@@ -2,12 +2,12 @@ import { z } from 'zod'
 
 /** التحقق من بيانات الحساب */
 export const profileSchema = z.object({
-  name: z.string().min(2, 'الاسم يجب أن يكون حرفين على الأقل'),
-  address: z.string().min(5, 'العنوان يجب أن يكون 5 أحرف على الأقل'),
+  name: z.string().min(2, 'اكتبي اسمك، حرفين على الأقل'),
+  address: z.string().min(5, 'اكتبي عنوانك بالتفصيل، 5 حروف على الأقل'),
   governorate: z.string().optional(),
   phone: z
     .string()
-    .regex(/^\+?[0-9\s-]{8,15}$/, 'أدخلي رقم هاتف صالح')
+    .regex(/^\+?[0-9\s-]{8,15}$/, 'اكتبي رقم موبايل صحيح')
     .optional()
     .or(z.literal('')),
   city: z.string().optional(),

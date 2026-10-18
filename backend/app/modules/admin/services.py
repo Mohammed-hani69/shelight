@@ -185,6 +185,16 @@ def list_orders(status: str | None = None) -> tuple[list[Order], dict]:
     return paginate(query, 12)
 
 
+def list_referral_orders() -> tuple[list[Order], dict]:
+    query = (
+        select(Order)
+        .where(Order.referral_link_id.is_not(None))
+        .options(selectinload(Order.referral_link))
+        .order_by(Order.created_at.desc())
+    )
+    return paginate(query, 25)
+
+
 def get_order(order_number: str) -> Order:
     order = Order.query.filter_by(order_number=order_number.strip().upper()).first()
     if order is None:

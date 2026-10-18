@@ -15,7 +15,7 @@ export function ProductRating({ rating, reviewCount, size = 'sm', className }: P
   const sizeClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'
 
   return (
-    <div className={cn('flex items-center gap-1.5', className)} aria-label={`تم التقييم ${rating} من 5`}>
+    <div className={cn('flex items-center gap-1.5', className)} aria-label={`التقييم ${rating} من 5`}>
       <div className="flex" aria-hidden="true">
         {Array.from({ length: 5 }).map((_, i) => {
           const isFull = i < fullStars

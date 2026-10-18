@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: JournalPostPageProps): Promise<Metadata> {
   const { slug } = await params
   const post = await journalService.getBySlug(slug)
-  if (!post) return { title: 'المقال غير موجود' }
+  if (!post) return { title: 'المقال ده مش موجود' }
   return {
     title: post.title,
     description: post.excerpt.slice(0, 160),
@@ -76,14 +76,14 @@ export default async function JournalPostPage({ params }: JournalPostPageProps) 
         ))}
 
         <div className="rounded-[var(--radius-lg)] border border-border bg-accent/20 p-6">
-          <h2 className="font-display text-xl font-semibold text-plum">نصيحة شيلايت</h2>
+          <h2 className="font-display text-xl font-semibold text-plum">نصيحة من شيلايت</h2>
           <p className="mt-2 text-sm text-muted">
-            الانتظام يتفوق على الشدة — روتين بسيط تتابعينه يومياً أفضل من روتين معقد تتخطينه.
+            الاستمرار أهم من الكتير — روتين بسيط كل يوم أحسن من روتين معقد متكمليش عليه.
           </p>
         </div>
 
         <Link href="/journal" className="inline-block text-sm font-medium text-primary hover:underline">
-          ← العودة إلى المدونة
+          ← ارجعي للمدونة
         </Link>
       </div>
     </article>

@@ -8,7 +8,7 @@ import { journalService } from '@/features/journal/services/journal-service'
 export const metadata: Metadata = {
   title: 'المدونة',
   description:
-    'طقوس الجمال وعلم العناية بالبشرة وأدلة العناية بالشعر من مدونة شيلايت.',
+    'نصايح وروتينات للعناية بالبشرة والشعر من مدونة شيلايت.',
   alternates: { canonical: '/journal' },
 }
 
@@ -24,8 +24,8 @@ export default async function JournalPage() {
     <div className="container-shelight py-14 md:py-20">
       <SectionHeading
         eyebrow="المدونة"
-        title="طقوس، علم وإشراقة"
-        subtitle="أدلة مدعومة بالخبرات لمساعدتك في بناء طقوس ستحبينها فعلاً."
+        title="روتينات، علم وإشراقة"
+        subtitle="نصايح من خبراء تساعدك تعملي روتين تحبيه وتكمّلي عليه."
       />
 
       {/* المقال المميز */}

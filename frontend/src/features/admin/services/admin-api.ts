@@ -28,6 +28,8 @@ import type {
   AdminOrderUpdate,
   AdminProduct,
   AdminProductWrite,
+  AdminReferralLink,
+  AdminReferralOrder,
   AdminVisitor,
   AdminVisitorTimeline,
 } from '@/types/admin'
@@ -45,6 +47,11 @@ interface AdminLoginResponse {
 interface Paged<T> {
   items: T
   meta?: BackendMeta
+}
+
+interface AdminReferralsResponse {
+  links: AdminReferralLink[]
+  orders: AdminReferralOrder[]
 }
 
 export const adminApi = {
@@ -133,6 +140,16 @@ export const adminApi = {
 
   async deleteOrder(orderNumber: string): Promise<void> {
     await apiClient.delete(endpoints.admin.order(orderNumber))
+  },
+
+  async getReferrals(page = 1): Promise<Paged<AdminReferralsResponse>> {
+    return apiClient.getWithMeta<AdminReferralsResponse, BackendMeta>(
+      `${endpoints.admin.referrals}?page=${page}&page_size=25`
+    )
+  },
+
+  async createReferral(payload: { inviterName: string; inviterPhone: string }): Promise<AdminReferralLink> {
+    return apiClient.post<AdminReferralLink>(endpoints.admin.referrals, payload)
   },
 
   //----- كوبونات -----

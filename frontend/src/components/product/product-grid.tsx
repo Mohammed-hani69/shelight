@@ -21,7 +21,7 @@ export function ProductGrid({
       <div
         className={cnGrid(className)}
         aria-busy="true"
-        aria-label="جارٍ تحميل المنتجات"
+        aria-label="بنحمّل المنتجات"
       >
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <ProductCardSkeleton key={i} />

@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { WishlistPage } from './wishlist-page'
 
 export const metadata: Metadata = {
-  title: 'المفضلة',
+  title: 'حاجاتك المفضلة',
   description:
-    'منتجات شيلايت المحفوظة — انقليها إلى حقيبتك متى كنتِ مستعدة.',
+    'المنتجات اللي حفظتيها في المفضلة. ضيفيها لسلتك وقت ما تحبي.',
 }
 
 export default function Page() {

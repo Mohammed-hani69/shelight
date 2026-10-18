@@ -298,6 +298,9 @@ class Order(TimestampMixin, db.Model):
     customer_id: Mapped[int | None] = mapped_column(
         ForeignKey("customers.id", ondelete="SET NULL"), nullable=True
     )
+    referral_link_id: Mapped[int | None] = mapped_column(
+        ForeignKey("referral_links.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     guest_email: Mapped[str | None] = mapped_column(String(254), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False, index=True)
     subtotal: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False, default=0)
@@ -328,9 +331,21 @@ class Order(TimestampMixin, db.Model):
     )
 
     customer: Mapped[Customer | None] = relationship(back_populates="orders")
+    referral_link: Mapped[ReferralLink | None] = relationship(back_populates="orders")
     items: Mapped[list[OrderItem]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )
+
+
+class ReferralLink(TimestampMixin, db.Model):
+    __tablename__ = "referral_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(40), unique=True, nullable=False, index=True)
+    inviter_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    inviter_phone: Mapped[str] = mapped_column(String(32), nullable=False)
+
+    orders: Mapped[list[Order]] = relationship(back_populates="referral_link")
 
 
 class ShippingProviderSettings(TimestampMixin, db.Model):

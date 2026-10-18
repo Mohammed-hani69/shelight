@@ -20,7 +20,7 @@ interface ProductPageProps {
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
   const product = await productService.getBySlug(slug)
-  if (!product) return { title: 'المنتج غير موجود' }
+  if (!product) return { title: 'المنتج ده مش موجود' }
 
   return {
     title: product.name,
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description: product.description.slice(0, 160),
       images: product.images[0]
         ? [{ url: resolveMediaUrl(product.images[0].url), alt: product.images[0].alt || product.name }]
-        : [{ url: '/images/hero/hero-1.webp', alt: 'منتجات SHE LIGHT للعناية والجمال' }],
+        : [{ url: '/images/hero/hero-1.webp', alt: 'منتجات شيلايت للعناية والجمال' }],
       type: 'website',
     },
     twitter: {
@@ -114,8 +114,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </section>
 
       {related.length > 0 && (
-        <section className="container-shelight pb-16" aria-label="منتجات ذات صلة">
-          <SectionHeading eyebrow="أكملي الروتين" title="قد يعجبك أيضاً" align="start" />
+        <section className="container-shelight pb-16" aria-label="منتجات ممكن تعجبك">
+          <SectionHeading eyebrow="كمّلي روتينك" title="ممكن يعجبك كمان" align="start" />
           <ProductCarousel products={related} />
         </section>
       )}

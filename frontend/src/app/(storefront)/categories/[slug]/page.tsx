@@ -13,7 +13,7 @@ interface CategoryPageProps {
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params
   const category = await resolveCategory(slug)
-  if (!category) return { title: 'الفئة غير موجودة' }
+  if (!category) return { title: 'القسم ده مش موجود' }
   return {
     title: category.name,
     description: category.description,
@@ -67,15 +67,15 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         {category.products.length > 0 ? (
           <>
             <p className="mb-6 text-sm text-muted">
-              {category.products.length} منتج{category.products.length !== 1 ? 'ات' : ''}
+              {category.products.length} منتج
             </p>
             <ProductGrid products={category.products} />
           </>
         ) : (
           <EmptyState
-            title="منتجات قريباً"
-            description={`نعمل على تجهيز منتجات لـ ${category.name}. تصفحي باقي الفئات في هذه الأثناء.`}
-            actionLabel="تصفح جميع المنتجات"
+            title="منتجاتها جاية قريب"
+            description={`لسه بنجهز منتجات ${category.name}. لحد ما تجهز، شوفي باقي الأقسام.`}
+            actionLabel="شوفي كل المنتجات"
             actionHref="/shop"
           />
         )}

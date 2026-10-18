@@ -23,6 +23,7 @@ export interface CheckoutFormPayload {
   /** معرّف الجلسة ومعرّف الدفع — يُرسلان لتتبّع الرحلة فقط. */
   sessionId?: string
   checkoutKey?: string
+  referralCode?: string
 }
 
 /** يقسّم الاسم الكامل إلى first/last كما يتوقعه الـ backend. */
@@ -56,6 +57,7 @@ export function toCheckoutRequest(payload: CheckoutFormPayload) {
     })),
     sessionId: payload.sessionId,
     checkoutKey: payload.checkoutKey,
+    referralCode: payload.referralCode,
   }
 }
 

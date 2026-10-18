@@ -7,9 +7,9 @@ import type { SortValue } from '@/features/products/components/sort-dropdown'
 import type { Product } from '@/types/product'
 
 export const metadata: Metadata = {
-  title: 'تسوّقي كل المنتجات',
+  title: 'اتسوّقي كل المنتجات',
   description:
-    'تصفحي مجموعة شيلايت الكاملة — العناية بالبشرة والشعر والعين والأظافر والأطفال. مستحضرات جلدية فاخرة لكل طقس.',
+    'تصفحي كل منتجات شيلايت للعناية بالبشرة والشعر والعين والأظافر والأطفال. اختاري اللي يناسب روتينك.',
   alternates: { canonical: '/shop' },
 }
 

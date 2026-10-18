@@ -49,7 +49,7 @@ export function OffersPopup() {
 
   return (
     <aside
-      aria-label="عروض المنتجات"
+      aria-label="عروض على المنتجات"
       className="fixed bottom-[calc(var(--app-bar-height)+1rem)] left-3 z-40 w-[min(21rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-card sm:bottom-5 sm:left-5"
     >
       <div className="flex items-start gap-3 border-b border-border bg-accent/20 px-3 py-3">
@@ -62,7 +62,7 @@ export function OffersPopup() {
         </div>
         <button
           type="button"
-          aria-label="إغلاق العروض"
+          aria-label="اقفلي العروض"
           onClick={() => setOpen(false)}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-plum"
         >
@@ -110,7 +110,7 @@ export function OffersPopup() {
       <div className="border-t border-border px-3 py-2">
         <Button asChild variant="link" size="sm" className="h-8 w-full justify-between px-1">
           <Link href="/shop" onClick={() => setOpen(false)}>
-            تسوّقي كل العروض
+            شوفي كل العروض
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>

@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { CartPage } from './cart-page'
 
 export const metadata: Metadata = {
-  title: 'حقيبتك',
-  description: 'راجعي منتجات حقيبتك في شيلايت وأكملي الطلب بأمان.',
+  title: 'سلتك',
+  description: 'راجعي المنتجات اللي في سلتك وكمّلي طلبك بأمان.',
 }
 
 export default function Page() {

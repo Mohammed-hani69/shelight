@@ -10,14 +10,14 @@ export function ProductTabs({ product }: { product: Product }) {
         <TabsList className="w-full overflow-x-auto">
           <TabsTrigger value="description">الوصف</TabsTrigger>
           <TabsTrigger value="ingredients">المكونات</TabsTrigger>
-          <TabsTrigger value="how-to-use">طريقة الاستخدام</TabsTrigger>
-          <TabsTrigger value="faq">الأسئلة الشائعة</TabsTrigger>
+          <TabsTrigger value="how-to-use">تستخدميه إزاي</TabsTrigger>
+          <TabsTrigger value="faq">أسئلة بتتكرر</TabsTrigger>
         </TabsList>
 
         <TabsContent value="description" className="space-y-4 text-start text-sm leading-relaxed text-charcoal">
           <p>{product.description}</p>
           <div>
-            <h3 className="mb-2 font-display text-lg font-semibold text-plum">أهم الفوائد</h3>
+            <h3 className="mb-2 font-display text-lg font-semibold text-plum">أهم مميزاته</h3>
             <ul className="grid gap-2 sm:grid-cols-2">
               {product.benefits.map((benefit) => (
                 <li key={benefit} className="flex items-start gap-2">
@@ -29,7 +29,7 @@ export function ProductTabs({ product }: { product: Product }) {
           </div>
           {product.suitableFor.length > 0 && (
             <div>
-              <h3 className="mb-2 font-display text-lg font-semibold text-plum">مناسب لـ</h3>
+              <h3 className="mb-2 font-display text-lg font-semibold text-plum">يناسب</h3>
               <p className="text-muted">{product.suitableFor.join(' · ')}</p>
             </div>
           )}

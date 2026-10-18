@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils/cn'
 import { useI18n } from '@/lib/i18n/use-i18n'
 import { MediaImage } from '@/components/common/media-image'
 import { useStoreSettings } from '@/features/store-settings/use-store-settings'
+import { readReferralCode } from '@/features/referrals/referral-utils'
 
 const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
 
@@ -206,7 +207,7 @@ export function CheckoutForm() {
       trackingClient.track('coupon_error', { couponCode: code })
       setCouponCode(null)
       setCouponDiscount(0)
-      toast.error(friendlyMessage(error))
+      toast.error(friendlyMessage(error, 'egyptian'))
     } finally {
       setCouponLoading(false)
     }
@@ -244,7 +245,7 @@ export function CheckoutForm() {
       .catch((error) => {
         // لم يعد صالحاً (مثلاً أُفرغت السلة) — نُسقطه بدل تركه معلّقاً.
         useCartStore.getState().setCouponCode(null)
-        toast.error(friendlyMessage(error))
+        toast.error(friendlyMessage(error, 'egyptian'))
       })
       .finally(() => setCouponLoading(false))
   }, [items.length, subtotal])
@@ -290,6 +291,7 @@ export function CheckoutForm() {
           email: customer?.email ?? undefined,
           sessionId: trackingClient.currentSessionId ?? undefined,
           checkoutKey: trackingClient.checkoutKey(),
+          referralCode: readReferralCode(),
         })
         const next: OrderConfirmation = {
           number: order.number,
@@ -318,9 +320,9 @@ export function CheckoutForm() {
     } catch (error) {
       trackingClient.track('checkout_error', {
         checkoutKey: trackingClient.checkoutKey(),
-        message: friendlyMessage(error),
+        message: friendlyMessage(error, 'egyptian'),
       })
-      toast.error(friendlyMessage(error))
+      toast.error(friendlyMessage(error, 'egyptian'))
     } finally {
       setPlacing(false)
     }
@@ -373,7 +375,7 @@ export function CheckoutForm() {
                 className="flex h-11 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 {...register('governorate', { onBlur: flushLead })}
               >
-                <option value="" disabled>اختاري المحافظة</option>
+                <option value="" disabled>اختاري محافظتك</option>
                 {governorates.map((g) => (
                   <option key={g} value={g}>{t.checkout.governorates[g]}</option>
                 ))}

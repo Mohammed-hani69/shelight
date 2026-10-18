@@ -64,12 +64,12 @@ export function MobileCarousel({
         ))}
       </div>
       {slideCount > 1 && (
-        <div className="mt-4 flex justify-center gap-2 md:hidden" aria-label="التنقل بين الشرائح">
+        <div className="mt-4 flex justify-center gap-2 md:hidden" aria-label="التنقل بين الصور">
           {Array.from({ length: slideCount }, (_, index) => (
             <button
               key={index}
               type="button"
-              aria-label={`عرض الشريحة ${index + 1} من ${slideCount}`}
+              aria-label={`الصورة ${index + 1} من ${slideCount}`}
               aria-current={activeIndex === index}
               onClick={() => goTo(index)}
               className={cn(

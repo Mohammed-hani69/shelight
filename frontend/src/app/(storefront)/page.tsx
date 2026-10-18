@@ -12,15 +12,15 @@ import { VideoCarousel } from '@/components/marketing/video-carousel'
 import { config } from '@/config/site'
 
 export const metadata: Metadata = {
-  title: 'مستحضرات تجميل وعناية بالبشرة والشعر في مصر',
+  title: 'منتجات شيلايت للعناية ببشرتك وشعرك في مصر',
   description:
-    'تسوقي منتجات شيلايت للعناية بالبشرة والشعر والجسم في مصر. اكتشفي الغسول والمرطبات والسيروم والزيوت الطبيعية وروتين يناسب نوع بشرتك.',
+    'اتسوّقي منتجات شيلايت للعناية بالبشرة والشعر والجسم في مصر. اكتشفي الغسول والمرطبات والسيروم والزيوت، واختاري روتين يناسب بشرتك.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'شيلايت | منتجات العناية بالبشرة والشعر في مصر',
-    description: 'اكتشفي مستحضرات التجميل والعناية بالبشرة والشعر والجسم من SHE LIGHT.',
+    title: 'شيلايت | عناية ببشرتك وشعرك في مصر',
+    description: 'اكتشفي منتجات شيلايت للعناية ببشرتك وشعرك وجسمك.',
     url: config.site.url,
-    images: [{ url: '/images/hero/hero-1.webp', alt: 'منتجات SHE LIGHT للعناية والجمال' }],
+    images: [{ url: '/images/hero/hero-1.webp', alt: 'منتجات شيلايت للعناية والجمال' }],
   },
 }
 

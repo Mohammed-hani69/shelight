@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { BundlesPage } from './bundles-page'
 
 export const metadata: Metadata = {
-  title: 'الباقات وطقوس العناية',
+  title: 'باقات العناية',
   description:
-    'وفّري مع روتينات شيلايت الكاملة — عناية للبشرة والشعر وباقات شاملة بسعر أفضل.',
+    'وفّري مع باقات شيلايت وروتيناتها الكاملة للعناية بالبشرة والشعر.',
   alternates: { canonical: '/bundles' },
 }
 

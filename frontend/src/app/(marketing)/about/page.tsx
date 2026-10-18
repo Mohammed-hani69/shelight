@@ -4,7 +4,7 @@ import { SitePageView } from '@/features/site-pages/site-page-view'
 export const metadata: Metadata = {
   title: 'من نحن',
   description:
-    'شيلايت علامة مصرية فاخرة للمستحضرات الجلدية — جمال مستوحى سريرياً لإشراقتكِ.',
+    'شيلايت علامة مصرية للعناية بالبشرة بتركيبات مستوحاة من العلم، عشان بشرتك تفضل مشرقة وصحية.',
   alternates: { canonical: '/about' },
 }
 

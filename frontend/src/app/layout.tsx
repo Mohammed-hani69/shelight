@@ -23,11 +23,11 @@ const tajawal = Tajawal({
 
 export const metadata: Metadata = {
   title: {
-    default: 'شيلايت | مستحضرات تجميل وعناية بالبشرة والشعر في مصر',
+    default: 'شيلايت | عناية ببشرتك وشعرك في مصر',
     template: '%s | SHE LIGHT',
   },
   description:
-    'تسوقي مستحضرات SHE LIGHT للعناية بالبشرة والشعر والجسم في مصر. اكتشفي منتجات الترطيب والتنظيف والسيروم والزيوت وروتين العناية المناسب لكِ.',
+    'اتسوّقي منتجات شيلايت للعناية ببشرتك وشعرك وجسمك في مصر. اكتشفي الغسول والمرطبات والسيروم والزيوت واختاري روتين يناسبك.',
   keywords: [
     'مستحضرات تجميل في مصر',
     'منتجات العناية بالبشرة',
@@ -43,18 +43,18 @@ export const metadata: Metadata = {
     'SHE LIGHT',
   ],
   openGraph: {
-    title: 'شيلايت | مستحضرات تجميل وعناية بالبشرة والشعر في مصر',
+    title: 'شيلايت | عناية ببشرتك وشعرك في مصر',
     description:
-      'اكتشفي منتجات شيلايت للعناية بالبشرة والشعر والجسم، واختاري روتين الجمال المناسب لكِ.',
+      'اكتشفي منتجات شيلايت للعناية ببشرتك وشعرك وجسمك واختاري روتين يناسبك.',
     type: 'website',
     locale: 'ar_EG',
     siteName: 'SHE LIGHT',
-    images: [{ url: '/images/hero/hero-1.webp', alt: 'منتجات SHE LIGHT للعناية والجمال' }],
+    images: [{ url: '/images/hero/hero-1.webp', alt: 'منتجات شيلايت للعناية والجمال' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'شيلايت | العناية بالبشرة والشعر في مصر',
-    description: 'تسوقي منتجات SHE LIGHT للعناية بالبشرة والشعر والجسم.',
+    title: 'شيلايت | عناية ببشرتك وشعرك في مصر',
+    description: 'اتسوّقي منتجات شيلايت للعناية ببشرتك وشعرك وجسمك.',
     images: ['/images/hero/hero-1.webp'],
   },
   metadataBase: new URL(config.site.url),

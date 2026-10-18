@@ -37,7 +37,7 @@ export function LoginForm() {
       toast.success(t.auth.welcomeBackToast)
       router.push('/account')
     } catch (error) {
-      toast.error(friendlyMessage(error))
+      toast.error(friendlyMessage(error, 'egyptian'))
     } finally {
       setLoading(false)
     }

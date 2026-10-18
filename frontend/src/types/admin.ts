@@ -21,6 +21,26 @@ export interface AdminDashboardSummary {
   customersCount: number
 }
 
+export interface AdminReferralLink {
+  id: string
+  code: string
+  inviterName: string
+  inviterPhone: string
+  createdAt: string | null
+}
+
+export interface AdminReferralOrder {
+  id: string
+  inviterName: string
+  inviterPhone: string
+  invitedName: string
+  invitedPhone: string
+  orderNumber: string
+  total: number
+  status: string
+  createdAt: string | null
+}
+
 export interface AdminCategoryBrief {
   id: string
   slug: string

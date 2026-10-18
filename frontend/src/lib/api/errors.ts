@@ -54,12 +54,31 @@ export function normalizeError(error: unknown): Error {
 const GENERIC_CODES = new Set(['UNKNOWN_ERROR', 'validation_error', 'bad_request', 'not_found'])
 
 /** تحويل كود الحالة إلى رسالة ودية */
-export function friendlyMessage(error: unknown): string {
+export function friendlyMessage(
+  error: unknown,
+  dialect: 'default' | 'egyptian' = 'default'
+): string {
   if (error instanceof ApiError) {
     // أخطاء منطق العمل (الكوبون، المخزون...) تحمل رسالة مفهومة من الخادم،
     // فنعرضها كما هي بدل إخفائها خلف رسالة عامة بحسب كود الحالة.
     if (error.code && !GENERIC_CODES.has(error.code) && error.message) {
       return error.message
+    }
+    if (dialect === 'egyptian') {
+      switch (error.status) {
+        case 404:
+          return 'مش لاقيين الحاجة اللي بتدوري عليها.'
+        case 401:
+          return 'جلسة الدخول خلصت. سجّلي دخولك تاني.'
+        case 403:
+          return 'معندكيش صلاحية تعملي كده.'
+        case 422:
+          return 'راجعي البيانات اللي كتبتيها وجربي تاني.'
+        case 500:
+          return 'حصلت مشكلة من عندنا. جربي تاني كمان شوية.'
+        default:
+          return error.message
+      }
     }
     switch (error.status) {
       case 404:
@@ -77,7 +96,9 @@ export function friendlyMessage(error: unknown): string {
     }
   }
   if (error instanceof NetworkError) {
-    return 'تعذّر الوصول إلى خوادمنا. يرجى التحقق من اتصالك.'
+    return dialect === 'egyptian'
+      ? 'مش قادرين نوصل للسيرفر. اتأكدي إن النت شغال وجربي تاني.'
+      : 'تعذّر الوصول إلى خوادمنا. يرجى التحقق من اتصالك.'
   }
-  return 'حدث خطأ غير متوقع.'
+  return dialect === 'egyptian' ? 'حصلت مشكلة مش متوقعة. جربي تاني.' : 'حدث خطأ غير متوقع.'
 }

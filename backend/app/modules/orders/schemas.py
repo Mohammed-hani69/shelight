@@ -49,6 +49,9 @@ class CheckoutSchema(Schema):
     checkoutKey = fields.Str(
         data_key="checkoutKey", load_default=None, validate=validate.Length(max=64)
     )
+    referralCode = fields.Str(
+        data_key="referralCode", load_default=None, validate=validate.Length(max=40)
+    )
 
 
 class OrderItemOut(Schema):

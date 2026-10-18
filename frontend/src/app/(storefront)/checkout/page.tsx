@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { CheckoutForm } from './checkout-form'
 
 export const metadata: Metadata = {
-  title: 'إتمام الطلب',
-  description: 'أكمل طلبك من شيلايت بأمان.',
+  title: 'كمّلي طلبك',
+  description: 'أكدي طلبك من شيلايت بأمان.',
   robots: { index: false },
 }
 

@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { TrackOrderForm } from '@/features/orders/components/track-order-form'
 
 export const metadata: Metadata = {
-  title: 'تتبع طلبك',
+  title: 'تابعي طلبك',
   description:
-    'تتبّعي حالة طلبك من شيلايت برقم الطلب ورقم الموبايل — بدون الحاجة لتسجيل الدخول.',
+    'تابعي طلب شيلايت برقم الطلب ورقم الموبايل، من غير ما تسجّلي دخول.',
 }
 
 interface TrackOrderPageProps {

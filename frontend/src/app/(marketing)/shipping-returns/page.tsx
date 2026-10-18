@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { SitePageView } from '@/features/site-pages/site-page-view'
 
 export const metadata: Metadata = {
-  title: 'الشحن والإرجاع',
-  description: 'معلومات الشحن والتوصيل والاستبدال والإرجاع في SHE LIGHT.',
+  title: 'الشحن والاستبدال',
+  description: 'اعرفي تفاصيل الشحن والتوصيل والاستبدال والاسترجاع من شيلايت.',
   alternates: { canonical: '/shipping-returns' },
 }
 

@@ -3,7 +3,7 @@ import { ProfileForm } from '@/features/account/components/profile-form'
 
 export const metadata: Metadata = {
   title: 'الملف الشخصي',
-  description: 'إدارة بيانات حسابك في شيلايت.',
+  description: 'راجعي وعدّلي بيانات حسابك في شيلايت.',
 }
 
 export default function ProfilePage() {

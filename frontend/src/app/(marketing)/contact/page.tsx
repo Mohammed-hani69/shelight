@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { SitePageView } from '@/features/site-pages/site-page-view'
 
 export const metadata: Metadata = {
-  title: 'تواصل معنا',
-  description: 'تواصلي مع فريق شيلايت — نحن هنا لمساعدتك في الطلبات والمنتجات وكل ما يخص الإشراقة.',
+  title: 'كلمينا',
+  description: 'كلمينا لو عندك سؤال عن طلبك أو منتجاتنا، وفريق شيلايت هيساعدك.',
   alternates: { canonical: '/contact' },
 }
 

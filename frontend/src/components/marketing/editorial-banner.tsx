@@ -43,7 +43,7 @@ export function EditorialBanner() {
   if (USE_REMOTE_API) {
     if (banners.length === 0) return null
     return (
-      <section className="py-14 md:py-20" aria-label="بنرات العروض">
+      <section className="py-14 md:py-20" aria-label="عروضنا">
         <div className="container-shelight">
           <div
             className="relative mx-auto aspect-[4/5] max-h-[560px] w-full max-w-6xl overflow-hidden rounded-xl bg-surface shadow-card md:aspect-[16/6]"
@@ -59,7 +59,7 @@ export function EditorialBanner() {
                   )}
                   <Image
                     src={banner.imageUrl}
-                    alt="عروض ومنتجات SHE LIGHT"
+                    alt="عروض ومنتجات شيلايت"
                     fill
                     sizes="(min-width: 1280px) 1152px, 100vw"
                     quality={90}
@@ -93,7 +93,7 @@ export function EditorialBanner() {
                   <button
                     key={banner.id}
                     type="button"
-                    aria-label={`عرض البنر ${index + 1}`}
+                    aria-label={`العرض رقم ${index + 1}`}
                     aria-current={index === activeIndex}
                     onClick={() => setActiveIndex(index)}
                     className={`h-2.5 rounded-full shadow-sm transition-all ${

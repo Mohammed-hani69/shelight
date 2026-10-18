@@ -82,6 +82,7 @@ export const endpoints = {
     uploadProductImage: '/admin/products/upload',
     orders: '/admin/orders',
     order: (orderNumber: string) => `/admin/orders/${orderNumber}`,
+    referrals: '/admin/referrals',
     coupons: '/admin/coupons',
     coupon: (id: string) => `/admin/coupons/${id}`,
     customers: '/admin/customers',
