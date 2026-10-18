@@ -34,9 +34,9 @@ export default function HomePage() {
   return (
     <>
       <HeroCarousel />
-      <ReferralCampaignBanner />
       <BestSellers />
       <RoutineBundles />
+      <ReferralCampaignBanner />
       <VideoCarousel />
       <EditorialBanner />
       <WhyChoose />
