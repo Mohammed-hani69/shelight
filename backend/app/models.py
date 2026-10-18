@@ -94,6 +94,7 @@ class Product(TimestampMixin, db.Model):
     description_ar: Mapped[str] = mapped_column(Text, nullable=False, default="")
     description_en: Mapped[str] = mapped_column(Text, nullable=False, default="")
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    cost_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     compare_at_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     # وسوم مفصولة بفاصلة: serum, vitamin-c, glow …
@@ -393,6 +394,7 @@ class OrderItem(db.Model):
     product_slug: Mapped[str] = mapped_column(String(160), nullable=False, default="")
     image_url: Mapped[str] = mapped_column(String(500), nullable=False, default="")
     unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    unit_cost: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     order: Mapped[Order] = relationship(back_populates="items")

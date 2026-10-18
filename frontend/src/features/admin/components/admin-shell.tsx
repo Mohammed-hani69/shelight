@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   BarChart3,
+  Calculator,
   FileText,
   FolderTree,
   Gift,
@@ -44,6 +45,7 @@ const NAV_ITEMS = [
   { label: 'الباقات', href: '/admin/bundles', Icon: Gift },
   { label: 'المدونة', href: '/admin/journal', Icon: Newspaper },
   { label: 'الطلبات', href: '/admin/orders', Icon: Package },
+  { label: 'الحسابات والأرباح', href: '/admin/accounting', Icon: Calculator },
   { label: 'الكوبونات', href: '/admin/coupons', Icon: TicketPercent },
   { label: 'العملاء', href: '/admin/customers', Icon: Users },
   { label: 'الإحالات', href: '/admin/referrals', Icon: Share2 },

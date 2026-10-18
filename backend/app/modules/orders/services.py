@@ -174,6 +174,7 @@ def checkout(
                 product_slug=product.slug,
                 image_url=product.primary_image_url,
                 unit_price=product.price,
+                unit_cost=product.cost_price,
                 quantity=quantity,
             )
         )

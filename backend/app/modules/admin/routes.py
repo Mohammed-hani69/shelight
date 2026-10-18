@@ -4,6 +4,8 @@
 """
 from __future__ import annotations
 
+from datetime import date
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, create_refresh_token
 from marshmallow import Schema, fields, validate
@@ -36,6 +38,7 @@ from app.modules.admin.schemas import (
     JournalPatchSchema,
     JournalWriteSchema,
     OrderStatusUpdateSchema,
+    ProductCostUpdateSchema,
     ProductWriteSchema,
     bundle_admin_payload,
     category_admin_payload,
@@ -197,6 +200,40 @@ def delete_product(product_id: int):
     product.is_active = False
     db.session.commit()
     return jsonify({"data": {"id": product_id, "isActive": False}})
+
+
+@bp.patch("/products/<int:product_id>/cost")
+@admin_required()
+def update_product_cost(product_id: int):
+    product = db.session.get(Product, product_id)
+    if product is None:
+        raise ApiError("المنتج غير موجود", status_code=404)
+    data = load_json_or_400(ProductCostUpdateSchema())
+    product.cost_price = data["costPrice"]
+    db.session.commit()
+    return jsonify(
+        {
+            "data": {
+                "productId": str(product.id),
+                "costPrice": float(product.cost_price) if product.cost_price is not None else None,
+            }
+        }
+    )
+
+
+@bp.get("/accounting")
+@admin_required()
+def accounting():
+    raw_start = request.args.get("from")
+    raw_end = request.args.get("to")
+    try:
+        start_date = date.fromisoformat(raw_start) if raw_start else None
+        end_date = date.fromisoformat(raw_end) if raw_end else None
+    except ValueError as error:
+        raise ApiError("صيغة التاريخ غير صحيحة", status_code=400, code="invalid_date") from error
+    if start_date and end_date and start_date > end_date:
+        raise ApiError("تاريخ البداية لازم يكون قبل تاريخ النهاية", status_code=400)
+    return jsonify({"data": admin_service.accounting_summary(start_date, end_date)})
 
 
 # ---------------------------------------------------------------------------

@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils/format-price'
 import type { BackendMeta } from '@/lib/api/backend-mappers'
 import type {
   AdminAnalyticsOverview,
+  AdminAccountingReport,
   AdminBanner,
   AdminBannerWrite,
   AdminBundle,
@@ -140,6 +141,22 @@ export const adminApi = {
 
   async deleteOrder(orderNumber: string): Promise<void> {
     await apiClient.delete(endpoints.admin.order(orderNumber))
+  },
+
+  async accounting(options: { from?: string; to?: string } = {}): Promise<AdminAccountingReport> {
+    const query = new URLSearchParams()
+    if (options.from) query.set('from', options.from)
+    if (options.to) query.set('to', options.to)
+    const suffix = query.size ? `?${query.toString()}` : ''
+    return apiClient.get<AdminAccountingReport>(`${endpoints.admin.accounting}${suffix}`)
+  },
+
+  async updateProductCost(productId: string, costPrice: string | null): Promise<number | null> {
+    const result = await apiClient.patch<{ productId: string; costPrice: number | null }>(
+      endpoints.admin.productCost(productId),
+      { costPrice }
+    )
+    return result.costPrice
   },
 
   async getReferrals(page = 1): Promise<Paged<AdminReferralsResponse>> {

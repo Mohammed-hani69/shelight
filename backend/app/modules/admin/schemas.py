@@ -53,6 +53,16 @@ class ProductWriteSchema(Schema):
     is_active = fields.Bool(load_default=True, data_key="isActive")
 
 
+class ProductCostUpdateSchema(Schema):
+    costPrice = fields.Decimal(
+        required=True,
+        allow_none=True,
+        places=2,
+        as_string=True,
+        validate=validate.Range(min=Decimal("0"), max=Decimal("100000000")),
+    )
+
+
 class OrderShippingUpdateSchema(Schema):
     """تعديل بيانات شحن الطلب من اللوحة — كل الحقول اختيارية."""
 

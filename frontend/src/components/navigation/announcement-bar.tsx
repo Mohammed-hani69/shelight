@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Truck } from 'lucide-react'
@@ -21,6 +21,10 @@ export function AnnouncementBar() {
   const { locale, t } = useI18n()
   const settings = useStoreSettings()
   const [items, setItems] = useState<AnnouncementItem[]>([])
+  const [copies, setCopies] = useState(2)
+  const [sequenceWidth, setSequenceWidth] = useState(0)
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const sequenceRef = useRef<HTMLDivElement>(null)
   const fallback = t.announcement.freeShipping.replace(
     '{threshold}',
     formatPrice(settings.freeShippingThreshold),
@@ -74,6 +78,25 @@ export function AnnouncementBar() {
     }
   }, [])
 
+  useEffect(() => {
+    const viewport = viewportRef.current
+    const sequence = sequenceRef.current
+    if (!viewport || !sequence) return
+
+    const updateMarquee = () => {
+      const width = sequence.getBoundingClientRect().width
+      if (!width) return
+      setSequenceWidth(width)
+      setCopies(Math.max(2, Math.ceil(viewport.clientWidth / width) + 2))
+    }
+
+    updateMarquee()
+    const observer = new ResizeObserver(updateMarquee)
+    observer.observe(viewport)
+    observer.observe(sequence)
+    return () => observer.disconnect()
+  }, [items, text])
+
   const announcement = (
     <span className="flex shrink-0 items-center gap-2 px-5">
       <Truck className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
@@ -109,16 +132,33 @@ export function AnnouncementBar() {
     </div>
   )
 
+  const duration = sequenceWidth > 0 ? Math.max(18, sequenceWidth / 32) : 38
+  const marqueeStyle = {
+    animationDuration: `${duration}s`,
+    '--marquee-distance': `${sequenceWidth}px`,
+  } as CSSProperties
+
   return (
     <div className="bg-plum text-cream" dir="ltr">
       <div
+        ref={viewportRef}
         className="overflow-hidden py-2 text-xs leading-5"
         role="region"
         aria-label="عناوين الباقات والعروض"
       >
-        <div className="announcement-marquee flex w-max items-center text-center hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]">
-          {renderItems(false)}
-          {items.length > 0 ? renderItems(true) : announcement}
+        <div
+          className="announcement-marquee flex w-max items-center text-center hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]"
+          style={marqueeStyle}
+        >
+          {Array.from({ length: copies }, (_, index) => (
+            <div
+              key={index}
+              ref={index === 0 ? sequenceRef : undefined}
+              className="flex shrink-0 items-center"
+            >
+              {renderItems(index !== 0)}
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -44,6 +44,40 @@ export interface AdminReferralOrder {
   createdAt: string | null
 }
 
+export interface AdminAccountingSummary {
+  deliveredOrders: number
+  unitsSold: number
+  grossSales: number
+  discounts: number
+  netSales: number
+  knownCostOfGoodsSold: number
+  knownGrossProfit: number
+  grossProfit: number | null
+  unknownCostUnits: number
+  averageOrderValue: number
+}
+
+export interface AdminAccountingProduct {
+  productId: string | null
+  name: string
+  sku: string | null
+  isActive: boolean
+  currentCostPrice: number | null
+  unitsSold: number
+  grossSales: number
+  discount: number
+  netSales: number
+  costOfGoodsSold: number
+  knownGrossProfit: number
+  grossProfit: number | null
+  unknownCostUnits: number
+}
+
+export interface AdminAccountingReport {
+  summary: AdminAccountingSummary
+  products: AdminAccountingProduct[]
+}
+
 export interface AdminCategoryBrief {
   id: string
   slug: string

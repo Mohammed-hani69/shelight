@@ -84,6 +84,8 @@ export const endpoints = {
     orders: '/admin/orders',
     order: (orderNumber: string) => `/admin/orders/${orderNumber}`,
     referrals: '/admin/referrals',
+    accounting: '/admin/accounting',
+    productCost: (id: string) => `/admin/products/${id}/cost`,
     coupons: '/admin/coupons',
     coupon: (id: string) => `/admin/coupons/${id}`,
     customers: '/admin/customers',

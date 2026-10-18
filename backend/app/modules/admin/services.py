@@ -1,9 +1,10 @@
 """منطق لوحة التحكم — لا يُستدعى إلا عبر @admin_required في الـ routes."""
 from __future__ import annotations
 
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.core.errors import ApiError
@@ -18,6 +19,7 @@ from app.models import (
     Customer,
     JournalArticle,
     Order,
+    OrderItem,
     Product,
     ProductImage,
 )
@@ -193,6 +195,151 @@ def list_referral_orders() -> tuple[list[Order], dict]:
         .order_by(Order.created_at.desc())
     )
     return paginate(query, 25)
+
+
+def accounting_summary(start_date: date | None, end_date: date | None) -> dict:
+    """ملخص المنتجات المباعة في الطلبات المسلّمة فقط، مع تكلفة وقت إنشاء الطلب."""
+    filters = [Order.status == "delivered"]
+    if start_date:
+        filters.append(Order.created_at >= datetime.combine(start_date, time.min))
+    if end_date:
+        filters.append(Order.created_at < datetime.combine(end_date + timedelta(days=1), time.min))
+
+    line_revenue = OrderItem.unit_price * OrderItem.quantity
+    discount_share = case(
+        (
+            Order.subtotal > 0,
+            line_revenue * Order.discount_amount / func.nullif(Order.subtotal, 0),
+        ),
+        else_=0,
+    )
+    aggregation = db.session.execute(
+        select(
+            OrderItem.product_id,
+            func.max(OrderItem.product_name_ar).label("product_name_ar"),
+            func.max(OrderItem.product_name_en).label("product_name_en"),
+            func.coalesce(func.sum(OrderItem.quantity), 0).label("units_sold"),
+            func.coalesce(func.sum(line_revenue), 0).label("gross_sales"),
+            func.coalesce(func.sum(discount_share), 0).label("allocated_discount"),
+            func.coalesce(
+                func.sum(
+                    case(
+                        (OrderItem.unit_cost.is_not(None), OrderItem.unit_cost * OrderItem.quantity),
+                        else_=0,
+                    )
+                ),
+                0,
+            ).label("known_cost"),
+            func.coalesce(
+                func.sum(case((OrderItem.unit_cost.is_(None), OrderItem.quantity), else_=0)),
+                0,
+            ).label("unknown_cost_units"),
+        )
+        .join(Order, Order.id == OrderItem.order_id)
+        .where(*filters)
+        .group_by(
+            OrderItem.product_id,
+            case(
+                (OrderItem.product_id.is_(None), OrderItem.product_name_ar),
+                else_="",
+            ),
+        )
+    ).all()
+
+    products = db.session.execute(
+        select(Product).order_by(Product.is_active.desc(), Product.name_ar, Product.id)
+    ).scalars().all()
+    product_by_id = {product.id: product for product in products}
+    product_rows: list[dict] = []
+    sold_product_ids: set[int] = set()
+
+    for row in aggregation:
+        product = product_by_id.get(row.product_id)
+        if product is not None:
+            sold_product_ids.add(product.id)
+        gross_sales = Decimal(row.gross_sales or 0)
+        allocated_discount = Decimal(row.allocated_discount or 0)
+        net_sales = gross_sales - allocated_discount
+        known_cost = Decimal(row.known_cost or 0)
+        unknown_cost_units = int(row.unknown_cost_units or 0)
+        product_rows.append(
+            {
+                "productId": str(row.product_id) if row.product_id is not None else None,
+                "name": (
+                    product.name_ar
+                    if product
+                    else row.product_name_ar or row.product_name_en or "منتج غير موجود"
+                ),
+                "sku": product.sku if product else None,
+                "isActive": product.is_active if product else False,
+                "currentCostPrice": (
+                    float(product.cost_price) if product and product.cost_price is not None else None
+                ),
+                "unitsSold": int(row.units_sold or 0),
+                "grossSales": float(gross_sales),
+                "discount": float(allocated_discount),
+                "netSales": float(net_sales),
+                "costOfGoodsSold": float(known_cost),
+                "knownGrossProfit": float(net_sales - known_cost),
+                "grossProfit": (
+                    None if unknown_cost_units else float(net_sales - known_cost)
+                ),
+                "unknownCostUnits": unknown_cost_units,
+            }
+        )
+
+    for product in products:
+        if product.id in sold_product_ids:
+            continue
+        product_rows.append(
+            {
+                "productId": str(product.id),
+                "name": product.name_ar,
+                "sku": product.sku,
+                "isActive": product.is_active,
+                "currentCostPrice": (
+                    float(product.cost_price) if product.cost_price is not None else None
+                ),
+                "unitsSold": 0,
+                "grossSales": 0,
+                "discount": 0,
+                "netSales": 0,
+                "costOfGoodsSold": 0,
+                "knownGrossProfit": 0,
+                "grossProfit": 0,
+                "unknownCostUnits": 0,
+            }
+        )
+
+    gross_sales_total = sum((Decimal(str(row["grossSales"])) for row in product_rows), Decimal(0))
+    discount_total = sum((Decimal(str(row["discount"])) for row in product_rows), Decimal(0))
+    net_sales_total = gross_sales_total - discount_total
+    known_cost_total = sum(
+        (Decimal(str(row["costOfGoodsSold"])) for row in product_rows), Decimal(0)
+    )
+    unknown_cost_units_total = sum(row["unknownCostUnits"] for row in product_rows)
+    delivered_orders = db.session.execute(
+        select(func.count(Order.id)).where(*filters)
+    ).scalar_one()
+    partial_profit = net_sales_total - known_cost_total
+
+    return {
+        "summary": {
+            "deliveredOrders": int(delivered_orders),
+            "unitsSold": sum(row["unitsSold"] for row in product_rows),
+            "grossSales": float(gross_sales_total),
+            "discounts": float(discount_total),
+            "netSales": float(net_sales_total),
+            "knownCostOfGoodsSold": float(known_cost_total),
+            "knownGrossProfit": float(partial_profit),
+            "grossProfit": None if unknown_cost_units_total else float(partial_profit),
+            "unknownCostUnits": unknown_cost_units_total,
+            "averageOrderValue": (
+                float(net_sales_total / delivered_orders) if delivered_orders else 0
+            ),
+        },
+        "products": product_rows,
+    }
 
 
 def get_order(order_number: str) -> Order:
