@@ -9,10 +9,11 @@ import type { CouponValidation } from '@/types/coupon'
  * لكن الخصم النهائي يُحسب مرة أخرى عند إنشاء الطلب.
  */
 export const couponApi = {
-  async validate(code: string, subtotal: number): Promise<CouponValidation> {
+  async validate(code: string, subtotal: number, phone?: string): Promise<CouponValidation> {
     return apiClient.post<CouponValidation>(endpoints.coupons.validate, {
       code: code.trim(),
       subtotal,
+      phone,
     })
   },
 }

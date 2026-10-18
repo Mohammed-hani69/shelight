@@ -188,7 +188,7 @@ export function CheckoutForm() {
     setCouponLoading(true)
     try {
       if (USE_REMOTE_API) {
-        const res = await couponApi.validate(code, subtotal)
+        const res = await couponApi.validate(code, subtotal, getValues('phone'))
         setCouponCode(res.code)
         setCouponDiscount(res.discountAmount)
         useCartStore.getState().setCouponCode(res.code)
@@ -230,7 +230,7 @@ export function CheckoutForm() {
     autoApplied.current = true
     setCouponLoading(true)
     const request = USE_REMOTE_API
-      ? couponApi.validate(code, subtotal)
+      ? couponApi.validate(code, subtotal, getValues('phone'))
       : Promise.resolve({
           valid: true,
           code,

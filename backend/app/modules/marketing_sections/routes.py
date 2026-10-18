@@ -290,6 +290,9 @@ class SectionWriteSchema(Schema):
     isActive = fields.Bool(load_default=False)
     title = fields.Str(load_default="", validate=validate.Length(max=160))
     description = fields.Str(load_default="", validate=validate.Length(max=500))
+    imageUrl = fields.Str(load_default="", validate=validate.Length(max=500))
+    buttonText = fields.Str(load_default="", validate=validate.Length(max=80))
+    rewardPercent = fields.Float(load_default=10, validate=validate.Range(min=1, max=100))
     productIds = fields.List(fields.Int(strict=True), load_default=list, validate=validate.Length(max=30))
 
 
@@ -324,6 +327,9 @@ def _section_payload(section: StorefrontSection) -> dict:
         "isActive": section.is_active,
         "title": content.get("title", ""),
         "description": content.get("description", ""),
+        "imageUrl": content.get("imageUrl", ""),
+        "buttonText": content.get("buttonText", ""),
+        "rewardPercent": content.get("rewardPercent", 10),
         "productIds": content.get("productIds", []),
     }
 
@@ -354,6 +360,9 @@ def get_admin_section(section_key: str):
                 "isActive": False,
                 "title": "",
                 "description": "",
+                "imageUrl": "",
+                "buttonText": "",
+                "rewardPercent": 10,
                 "productIds": [],
             }
         }
@@ -393,6 +402,9 @@ def save_admin_section(section_key: str):
     section.content = {
         "title": data["title"],
         "description": data["description"],
+        "imageUrl": data["imageUrl"],
+        "buttonText": data["buttonText"],
+        "rewardPercent": data["rewardPercent"],
         "productIds": list(dict.fromkeys(product_ids)),
     }
     db.session.add(section)

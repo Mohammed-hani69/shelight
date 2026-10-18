@@ -1,11 +1,10 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
-import { Copy, Link2, LoaderCircle, Share2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { adminApi } from '@/features/admin/services/admin-api'
 import { friendlyMessage } from '@/lib/api/errors'
 import { formatPrice } from '@/lib/utils/format-price'
@@ -18,10 +17,7 @@ export function ReferralsManager() {
   const [meta, setMeta] = useState<BackendMeta | null>(null)
   const [page, setPage] = useState(1)
   const [origin, setOrigin] = useState('')
-  const [inviterName, setInviterName] = useState('')
-  const [inviterPhone, setInviterPhone] = useState('')
   const [loading, setLoading] = useState(true)
-  const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = async (requestedPage = page) => {
@@ -44,25 +40,6 @@ export function ReferralsManager() {
     void load(1)
   }, [])
 
-  const createLink = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setCreating(true)
-    try {
-      const link = await adminApi.createReferral({
-        inviterName: inviterName.trim(),
-        inviterPhone: inviterPhone.trim(),
-      })
-      setLinks((current) => [link, ...current])
-      setInviterName('')
-      setInviterPhone('')
-      toast.success('اتعمل رابط الإحالة')
-    } catch (err) {
-      toast.error(friendlyMessage(err))
-    } finally {
-      setCreating(false)
-    }
-  }
-
   const copyLink = async (code: string) => {
     const url = `${origin}/r/${encodeURIComponent(code)}`
     try {
@@ -73,52 +50,22 @@ export function ReferralsManager() {
     }
   }
 
+  const copyReward = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      toast.success('اتنسخ كود الخصم')
+    } catch {
+      toast.error('مقدرناش ننسخ كود الخصم تلقائي.')
+    }
+  }
+
   return (
     <div className="space-y-8">
-      <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
-        <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-plum">
-          <Share2 className="h-5 w-5" aria-hidden="true" />
-          اعمل رابط دعوة
-        </h2>
-        <p className="mb-5 text-sm text-muted">
-          اكتب اسم ورقم صاحب الدعوة، وبعدها ابعتله الرابط. أي طلب يتعمل من خلاله هيتسجل هنا.
-        </p>
-        <form onSubmit={createLink} className="grid gap-4 sm:grid-cols-3 sm:items-end">
-          <div className="space-y-1.5">
-            <Label htmlFor="inviter-name">اسم صاحب الدعوة</Label>
-            <Input
-              id="inviter-name"
-              value={inviterName}
-              onChange={(event) => setInviterName(event.target.value)}
-              minLength={2}
-              maxLength={200}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="inviter-phone">رقم موبايل صاحب الدعوة</Label>
-            <Input
-              id="inviter-phone"
-              type="tel"
-              value={inviterPhone}
-              onChange={(event) => setInviterPhone(event.target.value)}
-              minLength={8}
-              maxLength={32}
-              required
-            />
-          </div>
-          <Button type="submit" disabled={creating}>
-            {creating ? <LoaderCircle className="animate-spin" /> : <Link2 />}
-            {creating ? 'بيتحضر...' : 'إنشاء الرابط'}
-          </Button>
-        </form>
-      </section>
-
       <section className="space-y-3">
         <h2 className="font-display text-xl font-semibold text-plum">روابط الدعوة</h2>
         {links.length === 0 && !loading ? (
           <p className="rounded-xl border border-border bg-surface p-5 text-sm text-muted">
-            لسه مفيش روابط دعوة. اعمل أول رابط من النموذج اللي فوق.
+            لسه مفيش روابط دعوة. الزباين يقدروا يعملوا روابطهم من صفحة العرض.
           </p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-border bg-surface">
@@ -167,7 +114,9 @@ export function ReferralsManager() {
       <section className="space-y-3">
         <div>
           <h2 className="font-display text-xl font-semibold text-plum">الطلبات اللي جت من إحالة</h2>
-          <p className="mt-1 text-sm text-muted">بيانات صاحب الدعوة والمدعو وقيمة كل طلب.</p>
+          <p className="mt-1 text-sm text-muted">
+            كود الخصم بيظهر بعد تسجيل الطلب. انسخيه وابعتِيه لصاحبة الدعوة على رقمها.
+          </p>
         </div>
         {error ? (
           <div className="rounded-xl border border-danger/30 bg-danger/5 p-4 text-sm text-danger">
@@ -187,7 +136,7 @@ export function ReferralsManager() {
         ) : (
           <>
             <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-              <table className="w-full min-w-[900px] text-right text-sm">
+              <table className="w-full min-w-[1120px] text-right text-sm">
                 <thead className="bg-accent/30 text-muted">
                   <tr>
                     <th className="px-4 py-3 font-medium">صاحب الدعوة</th>
@@ -196,6 +145,8 @@ export function ReferralsManager() {
                     <th className="px-4 py-3 font-medium">رقم المدعو</th>
                     <th className="px-4 py-3 font-medium">رقم الطلب</th>
                     <th className="px-4 py-3 font-medium">سعر الطلب</th>
+                    <th className="px-4 py-3 font-medium">حالة الطلب</th>
+                    <th className="px-4 py-3 font-medium">مكافأة صاحبة الدعوة</th>
                     <th className="px-4 py-3 font-medium">التاريخ</th>
                   </tr>
                 </thead>
@@ -208,6 +159,30 @@ export function ReferralsManager() {
                       <td className="px-4 py-3" dir="ltr">{order.invitedPhone}</td>
                       <td className="px-4 py-3">{order.orderNumber}</td>
                       <td className="px-4 py-3">{formatPrice(order.total)}</td>
+                      <td className="px-4 py-3">
+                        {{
+                          pending: 'قيد الانتظار',
+                          processing: 'قيد التجهيز',
+                          shipped: 'تم الشحن',
+                          delivered: 'تم التسليم',
+                          cancelled: 'ملغي',
+                        }[order.status] ?? order.status}
+                      </td>
+                      <td className="px-4 py-3">
+                        {order.rewardCouponCode ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void copyReward(order.rewardCouponCode!)}
+                          >
+                            {order.rewardPercent}% — {order.rewardCouponCode}
+                            <Copy aria-hidden="true" />
+                          </Button>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         {order.createdAt
                           ? new Date(order.createdAt).toLocaleDateString('ar-EG')

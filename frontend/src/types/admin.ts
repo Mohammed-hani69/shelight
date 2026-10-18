@@ -26,6 +26,7 @@ export interface AdminReferralLink {
   code: string
   inviterName: string
   inviterPhone: string
+  rewardPercent: number
   createdAt: string | null
 }
 
@@ -37,6 +38,8 @@ export interface AdminReferralOrder {
   invitedPhone: string
   orderNumber: string
   total: number
+  rewardCouponCode: string | null
+  rewardPercent: number | null
   status: string
   createdAt: string | null
 }

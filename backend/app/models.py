@@ -287,6 +287,7 @@ class Coupon(db.Model):
     used_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     valid_from: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     valid_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    restricted_phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
@@ -300,6 +301,10 @@ class Order(TimestampMixin, db.Model):
     )
     referral_link_id: Mapped[int | None] = mapped_column(
         ForeignKey("referral_links.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    referral_reward_coupon_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    referral_reward_percent: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 2), nullable=True
     )
     guest_email: Mapped[str | None] = mapped_column(String(254), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False, index=True)
@@ -344,6 +349,9 @@ class ReferralLink(TimestampMixin, db.Model):
     code: Mapped[str] = mapped_column(String(40), unique=True, nullable=False, index=True)
     inviter_name: Mapped[str] = mapped_column(String(200), nullable=False)
     inviter_phone: Mapped[str] = mapped_column(String(32), nullable=False)
+    reward_percent: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), nullable=False, default=10
+    )
 
     orders: Mapped[list[Order]] = relationship(back_populates="referral_link")
 

@@ -10,6 +10,7 @@ import {
 } from '@/components/marketing'
 import { VideoCarousel } from '@/components/marketing/video-carousel'
 import { config } from '@/config/site'
+import { ReferralCampaignBanner } from '@/features/referrals/components/referral-campaign-banner'
 
 export const metadata: Metadata = {
   title: 'منتجات شيلايت للعناية ببشرتك وشعرك في مصر',
@@ -35,6 +36,7 @@ export default function HomePage() {
       <HeroCarousel />
       <BestSellers />
       <RoutineBundles />
+      <ReferralCampaignBanner />
       <VideoCarousel />
       <EditorialBanner />
       <WhyChoose />

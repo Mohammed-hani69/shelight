@@ -54,6 +54,11 @@ class CheckoutSchema(Schema):
     )
 
 
+class ReferralCreateSchema(Schema):
+    inviterName = fields.Str(required=True, validate=validate.Length(min=2, max=200))
+    inviterPhone = fields.Str(required=True, validate=validate.Length(min=8, max=32))
+
+
 class OrderItemOut(Schema):
     """سطر الطلب — الاسم مخزَّن بلغتين، ويُختار حسب `lang`."""
 

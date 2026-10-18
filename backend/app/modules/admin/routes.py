@@ -4,8 +4,6 @@
 """
 from __future__ import annotations
 
-import secrets
-
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, create_refresh_token
 from marshmallow import Schema, fields, validate
@@ -238,11 +236,6 @@ def delete_order(order_number: str):
     return jsonify({"data": {"orderNumber": order_number}})
 
 
-class ReferralLinkCreateSchema(Schema):
-    inviterName = fields.Str(required=True, validate=validate.Length(min=2, max=200))
-    inviterPhone = fields.Str(required=True, validate=validate.Length(min=8, max=32))
-
-
 @bp.get("/referrals")
 @admin_required()
 def list_referrals():
@@ -258,6 +251,7 @@ def list_referrals():
                         "code": link.code,
                         "inviterName": link.inviter_name,
                         "inviterPhone": link.inviter_phone,
+                        "rewardPercent": float(link.reward_percent),
                         "createdAt": link.created_at.isoformat() if link.created_at else None,
                     }
                     for link in links
@@ -275,6 +269,12 @@ def list_referrals():
                         "invitedPhone": order.shipping_phone,
                         "orderNumber": order.order_number,
                         "total": float(order.total),
+                        "rewardCouponCode": order.referral_reward_coupon_code,
+                        "rewardPercent": (
+                            float(order.referral_reward_percent)
+                            if order.referral_reward_percent is not None
+                            else None
+                        ),
                         "status": order.status,
                         "createdAt": order.created_at.isoformat() if order.created_at else None,
                     }
@@ -284,35 +284,6 @@ def list_referrals():
             "meta": meta,
         }
     )
-
-
-@bp.post("/referrals")
-@admin_required()
-def create_referral():
-    """إنشاء رابط دعوة فريد لصاحبه."""
-    data = load_json_or_400(ReferralLinkCreateSchema())
-    inviter_name = data["inviterName"].strip()
-    inviter_phone = data["inviterPhone"].strip()
-    if len(inviter_name) < 2 or len(inviter_phone) < 8:
-        raise ApiError("اكتب اسم صاحب الدعوة ورقم موبايل صحيح", status_code=422)
-    link = ReferralLink(
-        code=secrets.token_urlsafe(18),
-        inviter_name=inviter_name,
-        inviter_phone=inviter_phone,
-    )
-    db.session.add(link)
-    db.session.commit()
-    return jsonify(
-        {
-            "data": {
-                "id": str(link.id),
-                "code": link.code,
-                "inviterName": link.inviter_name,
-                "inviterPhone": link.inviter_phone,
-                "createdAt": link.created_at.isoformat() if link.created_at else None,
-            }
-        }
-    ), 201
 
 
 # ---------------------------------------------------------------------------

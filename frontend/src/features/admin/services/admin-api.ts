@@ -148,10 +148,6 @@ export const adminApi = {
     )
   },
 
-  async createReferral(payload: { inviterName: string; inviterPhone: string }): Promise<AdminReferralLink> {
-    return apiClient.post<AdminReferralLink>(endpoints.admin.referrals, payload)
-  },
-
   //----- كوبونات -----
   async listCoupons(): Promise<AdminCoupon[]> {
     return apiClient.get<AdminCoupon[]>(endpoints.admin.coupons)

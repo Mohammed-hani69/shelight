@@ -4,7 +4,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from app.core.errors import ApiError
-from app.core.utils import utcnow
+from app.core.utils import normalize_phone, utcnow
 from app.models import Coupon
 
 
@@ -12,7 +12,7 @@ def get_by_code(code: str) -> Coupon | None:
     return Coupon.query.filter_by(code=code.strip().upper()).first()
 
 
-def validate(code: str, subtotal: Decimal) -> Coupon:
+def validate(code: str, subtotal: Decimal, phone: str | None = None) -> Coupon:
     """يتحقق من قابلية استخدام الكوبون الآن مع هذا المجموع الفرعي."""
     coupon = get_by_code(code)
     if coupon is None or not coupon.is_active:
@@ -25,6 +25,12 @@ def validate(code: str, subtotal: Decimal) -> Coupon:
         raise ApiError("انتهت صلاحية هذا الرمز", code="coupon_expired")
     if coupon.usage_limit is not None and coupon.used_count >= coupon.usage_limit:
         raise ApiError("استُهلك هذا الرمز بالكامل", code="coupon_used_up")
+    if coupon.restricted_phone and normalize_phone(phone) != coupon.restricted_phone:
+        raise ApiError(
+            "رمز الخصم ده مخصص لرقم الموبايل المسجل للدعوة",
+            status_code=400,
+            code="coupon_phone_mismatch",
+        )
     if subtotal < Decimal(coupon.min_spend):
         raise ApiError(
             f"الحد الأدنى للطلب مع هذا الرمز هو {coupon.min_spend} جنيه",

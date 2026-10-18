@@ -64,6 +64,7 @@ export const endpoints = {
   orders: {
     list: '/orders',
     checkout: '/orders/checkout',
+    createReferral: '/referrals',
     /** الـ backend يبحث برقم الطلب (`SL-...`) لا بالمعرّف الرقمي. */
     detail: (orderNumber: string) => `/orders/${orderNumber}`,
     /** تتبّع زائر بلا حساب — يتطلّب رقم الطلب + الموبايل. */

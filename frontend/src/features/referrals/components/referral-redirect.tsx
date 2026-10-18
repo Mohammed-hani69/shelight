@@ -9,12 +9,12 @@ export function ReferralRedirect({ code }: { code: string }) {
 
   useEffect(() => {
     saveReferralCode(code)
-    router.replace('/shop')
+    router.replace('/invite')
   }, [code, router])
 
   return (
     <p className="mx-auto max-w-2xl px-6 py-24 text-center text-muted">
-      بنجهزلك المتجر...
+      بنجهزلك صفحة الدعوة...
     </p>
   )
 }

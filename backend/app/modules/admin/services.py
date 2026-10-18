@@ -222,6 +222,12 @@ def update_order(order: Order, data: dict) -> Order:
     """
     if data.get("status"):
         order.status = data["status"]
+        if data["status"] == "cancelled" and order.referral_reward_coupon_code:
+            reward_coupon = Coupon.query.filter_by(
+                code=order.referral_reward_coupon_code
+            ).first()
+            if reward_coupon is not None and reward_coupon.used_count == 0:
+                reward_coupon.is_active = False
     if data.get("payment_status"):
         order.payment_status = data["payment_status"]
     if data.get("payment_method"):

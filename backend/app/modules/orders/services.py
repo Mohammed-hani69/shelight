@@ -12,7 +12,7 @@ from app.core.security import hash_password
 from app.core.pagination import paginate
 from app.core.utils import normalize_phone, utcnow
 from app.extensions import db
-from app.models import CartItem, Customer, Order, OrderItem, Product, ReferralLink
+from app.models import CartItem, Coupon, Customer, Order, OrderItem, Product, ReferralLink
 from app.modules.coupons import services as coupon_service
 from app.modules.customers import services as customer_service
 from app.modules.tracking import services as tracking_service
@@ -77,6 +77,10 @@ def checkout(
         referral_link = ReferralLink.query.filter_by(code=referral_code).first()
         if referral_link is None:
             raise ApiError("رابط الإحالة غير صالح، افتح رابط الدعوة من جديد", status_code=400)
+        invited_phone = normalize_phone(data["shipping"]["phone"])
+        inviter_phone = normalize_phone(referral_link.inviter_phone)
+        if invited_phone and invited_phone == inviter_phone:
+            raise ApiError("مينفعش تستخدمي رابط دعوتك لطلبك الشخصي", status_code=400)
 
     shipping = data["shipping"]
     store_settings = get_store_settings()
@@ -90,7 +94,7 @@ def checkout(
     coupon_code: str | None = None
     raw_code = (data.get("couponCode") or "").strip()
     if raw_code:
-        coupon = coupon_service.validate(raw_code, subtotal)
+        coupon = coupon_service.validate(raw_code, subtotal, data["shipping"]["phone"])
         discount = coupon_service.discount_amount(coupon, subtotal)
         coupon_code = coupon.code
         coupon.used_count += 1
@@ -140,6 +144,26 @@ def checkout(
         shipping_governorate=shipping["governorate"],
         notes=shipping.get("notes") or "",
     )
+
+    if referral_link is not None:
+        reward_percent = Decimal(referral_link.reward_percent)
+        reward_code = f"REF-{secrets.token_hex(5).upper()}"
+        while Coupon.query.filter_by(code=reward_code).first() is not None:
+            reward_code = f"REF-{secrets.token_hex(5).upper()}"
+        db.session.add(
+            Coupon(
+                code=reward_code,
+                discount_type="percent",
+                value=reward_percent,
+                min_spend=Decimal("0"),
+                usage_limit=1,
+                used_count=0,
+                restricted_phone=normalize_phone(referral_link.inviter_phone),
+                is_active=True,
+            )
+        )
+        order.referral_reward_coupon_code = reward_code
+        order.referral_reward_percent = reward_percent
 
     for product, quantity in rows:
         order.items.append(

@@ -7,3 +7,4 @@ from marshmallow import Schema, fields, validate
 class CouponValidateSchema(Schema):
     code = fields.Str(required=True, validate=validate.Length(min=3, max=50))
     subtotal = fields.Float(required=True, validate=validate.Range(min=0))
+    phone = fields.Str(load_default=None, validate=validate.Length(max=32))

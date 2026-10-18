@@ -17,7 +17,7 @@ def validate_coupon():
     """يتحقق من رمز الخصم ويعيد مبلغ الخصم المتوقع لطلبية معينة."""
     data = load_json_or_400(CouponValidateSchema())
     subtotal = Decimal(str(data["subtotal"]))
-    coupon = coupon_service.validate(data["code"], subtotal)
+    coupon = coupon_service.validate(data["code"], subtotal, data.get("phone"))
     return jsonify(
         {
             "data": {

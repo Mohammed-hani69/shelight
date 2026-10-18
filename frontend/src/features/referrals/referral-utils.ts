@@ -20,5 +20,6 @@ export function readReferralCode(): string | undefined {
     window.localStorage.removeItem(REFERRAL_CODE_STORAGE_KEY)
     return undefined
   }
+
   return code
 }

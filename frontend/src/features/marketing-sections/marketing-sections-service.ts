@@ -16,6 +16,9 @@ export interface StorefrontSectionContent {
   isActive: boolean
   title: string
   description: string
+  imageUrl?: string
+  buttonText?: string
+  rewardPercent?: number
   productIds: number[]
 }
 
@@ -28,6 +31,9 @@ export interface StorefrontSectionWrite {
   isActive: boolean
   title: string
   description: string
+  imageUrl?: string
+  buttonText?: string
+  rewardPercent?: number
   productIds: number[]
 }
 
@@ -47,5 +53,12 @@ export const marketingSectionsService = {
     return apiClient.get<PublicOfferPopup | null>(endpoints.storefrontSections.section('offers_popup'), {
       auth: false,
     })
+  },
+
+  async getReferralCampaign(): Promise<StorefrontSectionContent | null> {
+    return apiClient.get<StorefrontSectionContent | null>(
+      endpoints.storefrontSections.section('referral_campaign'),
+      { auth: false }
+    )
   },
 }
