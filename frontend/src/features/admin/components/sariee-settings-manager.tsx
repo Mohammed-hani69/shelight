@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { RefreshCw, Truck } from 'lucide-react'
+import { LoaderCircle, RefreshCw, Truck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,6 +35,7 @@ export function SarieeSettingsManager() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [activatingOrderNumber, setActivatingOrderNumber] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async (nextPage: number, quiet = false) => {
@@ -83,6 +84,31 @@ export function SarieeSettingsManager() {
       toast.error(friendlyMessage(err))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const activateShipment = async (order: SarieeOrder) => {
+    setActivatingOrderNumber(order.orderNumber)
+    try {
+      const shipment = await adminApi.activateSarieeOrder(order.orderNumber)
+      setOrders((current) =>
+        current.map((item) =>
+          item.orderNumber === order.orderNumber
+            ? {
+                ...item,
+                sarieeOrderId: shipment.sarieeOrderId,
+                trackingNumber: shipment.trackingNumber ?? null,
+                status: shipment.status,
+                updatedAt: new Date().toISOString(),
+              }
+            : item
+        )
+      )
+      toast.success('تم تفعيل الشحنة في سريع')
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    } finally {
+      setActivatingOrderNumber(null)
     }
   }
 
@@ -189,6 +215,7 @@ export function SarieeSettingsManager() {
                   <th className="px-4 py-3 font-medium">الحالة</th>
                   <th className="px-4 py-3 font-medium">الإجمالي</th>
                   <th className="px-4 py-3 font-medium">آخر تحديث</th>
+                  <th className="px-4 py-3 font-medium">إجراء الشحنة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -204,6 +231,25 @@ export function SarieeSettingsManager() {
                     <td className="px-4 py-3">{order.status || '—'}</td>
                     <td className="px-4 py-3">{formatAmount(order.total)}</td>
                     <td className="px-4 py-3">{formatDate(order.updatedAt)}</td>
+                    <td className="px-4 py-3">
+                      {order.status === 'draft' ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={activatingOrderNumber !== null}
+                          onClick={() => void activateShipment(order)}
+                        >
+                          {activatingOrderNumber === order.orderNumber ? (
+                            <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
+                          ) : (
+                            <Truck className="h-4 w-4" aria-hidden="true" />
+                          )}
+                          {activatingOrderNumber === order.orderNumber ? 'جارٍ التفعيل…' : 'تفعيل الشحنة'}
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted">—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
