@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Banknote, CreditCard, Lock, Tag, X } from 'lucide-react'
+import { Banknote, BadgePercent, CreditCard, Lock, Tag, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -165,8 +165,8 @@ export function CheckoutForm() {
 
   // الخصم لا يتجاوز المجموع الفرعي، مثل ما يفعل الخادم تماماً.
   const discount = couponCode ? Math.min(couponDiscount, subtotal) : 0
-  const onlinePaymentDiscount =
-    paymentMethod === 'card' && settings.onlinePaymentDiscountEnabled
+  const onlinePaymentDiscountAmount =
+    settings.onlinePaymentDiscountEnabled && settings.onlinePaymentDiscountPercent > 0
       ? Math.round(
           Math.max(0, subtotal - discount) * settings.onlinePaymentDiscountPercent
         ) / 100
@@ -174,6 +174,9 @@ export function CheckoutForm() {
   const shipping = subtotal === 0 || subtotal >= settings.freeShippingThreshold
     ? 0
     : settings.governorateFees[selectedGovernorate] ?? settings.defaultShippingFee
+  const onlinePaymentDiscount = paymentMethod === 'card' ? onlinePaymentDiscountAmount : 0
+  const onlinePaymentTotal = Math.max(0, subtotal + shipping - discount - onlinePaymentDiscountAmount)
+  const codTotal = Math.max(0, subtotal + shipping - discount)
   const total = Math.max(0, subtotal + shipping - discount - onlinePaymentDiscount)
 
   // يسجّل بدء الدفع مرة واحدة عند امتلاء السلة.
@@ -418,6 +421,17 @@ export function CheckoutForm() {
           <h2 id="payment-title" className="mb-5 font-display text-2xl font-semibold text-plum">
             {t.checkout.payment}
           </h2>
+          {onlinePaymentDiscountAmount > 0 && (
+            <div className="mb-4 rounded-xl border border-success/30 bg-success/10 p-4">
+              <p className="flex items-center gap-2 font-semibold text-success">
+                <BadgePercent className="h-5 w-5 shrink-0" aria-hidden="true" />
+                ادفعي أونلاين ووفرّي {formatPrice(onlinePaymentDiscountAmount)}!
+              </p>
+              <p className="mt-1 text-sm text-charcoal">
+                هتدفعي {formatPrice(onlinePaymentTotal)} بدل {formatPrice(codTotal)} عند الدفع أونلاين.
+              </p>
+            </div>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <button
               type="button"
