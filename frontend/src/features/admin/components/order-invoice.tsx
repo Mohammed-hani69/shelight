@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { config } from '@/config/site'
 import { formatPrice } from '@/lib/utils/format-price'
 import type { AdminOrder, AdminOrderStatus, AdminPaymentStatus } from '@/types/admin'
@@ -49,9 +50,19 @@ export function OrderInvoice({ order }: { order: AdminOrder }) {
   return (
     <div dir="rtl" className="mx-auto max-w-[820px] bg-white p-8 text-charcoal">
       <header className="flex items-start justify-between border-b-2 border-plum pb-4">
-        <div>
-          <p className="font-display text-2xl font-bold text-plum">{config.site.name}</p>
-          <p className="mt-1 text-xs text-muted">{config.site.description}</p>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/logo.png"
+            alt={config.site.name}
+            width={640}
+            height={424}
+            priority
+            className="h-16 w-24 object-contain"
+          />
+          <div>
+            <p className="font-display text-2xl font-bold text-plum">{config.site.name}</p>
+            <p className="mt-1 text-xs text-muted">{config.site.description}</p>
+          </div>
         </div>
         <div className="text-left">
           <p className="text-lg font-semibold">فاتورة</p>
