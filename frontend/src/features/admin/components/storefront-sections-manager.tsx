@@ -12,7 +12,7 @@ import { adminApi } from '@/features/admin/services/admin-api'
 import { marketingSectionsService, type StorefrontSectionContent } from '@/features/marketing-sections/marketing-sections-service'
 import { friendlyMessage } from '@/lib/api/errors'
 import { resolveMediaUrl } from '@/lib/api/media'
-import type { AdminProduct } from '@/types/admin'
+import type { AdminBundle, AdminProduct } from '@/types/admin'
 import { ReferralCampaignManager } from '@/features/admin/components/referral-campaign-manager'
 import { CustomerTrustManager } from '@/features/admin/components/customer-trust-manager'
 
@@ -24,11 +24,13 @@ const EMPTY_SECTION: StorefrontSectionContent = {
   title: 'عروض مختارة لكِ',
   description: 'اكتشفي منتجاتك المفضلة بأسعار خاصة.',
   productIds: [],
+  bundleIds: [],
 }
 
 export function StorefrontSectionsManager() {
   const [section, setSection] = useState(EMPTY_SECTION)
   const [products, setProducts] = useState<AdminProduct[]>([])
+  const [bundles, setBundles] = useState<AdminBundle[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -39,11 +41,13 @@ export function StorefrontSectionsManager() {
     Promise.all([
       marketingSectionsService.getAdminSection(SECTION_KEY),
       adminApi.listProducts({ pageSize: 100 }),
+      adminApi.listBundles(),
     ])
-      .then(([savedSection, productPage]) => {
+      .then(([savedSection, productPage, availableBundles]) => {
         if (cancelled) return
         setSection({ ...EMPTY_SECTION, ...savedSection })
         setProducts(productPage.items)
+        setBundles(availableBundles)
       })
       .catch((err) => {
         if (!cancelled) setError(friendlyMessage(err))
@@ -59,6 +63,10 @@ export function StorefrontSectionsManager() {
   const offerProducts = useMemo(
     () => products.filter((product) => product.isActive !== false && product.compareAtPrice != null && product.compareAtPrice > product.price),
     [products],
+  )
+  const offerBundles = useMemo(
+    () => bundles.filter((bundle) => bundle.isActive && bundle.compareAtPrice > bundle.price),
+    [bundles],
   )
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLocaleLowerCase()
@@ -77,6 +85,16 @@ export function StorefrontSectionsManager() {
     }))
   }
 
+  const toggleBundle = (bundleId: string, checked: boolean) => {
+    const id = Number(bundleId)
+    setSection((current) => ({
+      ...current,
+      bundleIds: checked
+        ? [...new Set([...(current.bundleIds ?? []), id])]
+        : (current.bundleIds ?? []).filter((selectedId) => selectedId !== id),
+    }))
+  }
+
   const save = async () => {
     setSaving(true)
     try {
@@ -86,6 +104,7 @@ export function StorefrontSectionsManager() {
         title: section.title,
         description: section.description,
         productIds: section.productIds,
+        bundleIds: section.bundleIds ?? [],
       })
       setSection({ ...EMPTY_SECTION, ...saved })
       toast.success('تم حفظ إعدادات نافذة العروض')
@@ -114,7 +133,7 @@ export function StorefrontSectionsManager() {
             </span>
             <div>
               <h2 className="font-display text-lg font-semibold text-plum">نافذة عروض المنتجات</h2>
-              <p className="mt-1 text-sm text-muted">تظهر مرة واحدة للزائر في كل جلسة، وتعرض المنتجات التي عليها خصم فعلي.</p>
+              <p className="mt-1 text-sm text-muted">تظهر مرة واحدة للزائر في كل جلسة، وتعرض المنتجات والباقات المختارة ذات الخصم الفعلي.</p>
             </div>
           </div>
           <label className="flex min-h-10 items-center gap-2 text-sm">
@@ -180,6 +199,48 @@ export function StorefrontSectionsManager() {
             </div>
           )}
           <p className="text-xs text-muted">تم اختيار {section.productIds.length} منتجًا</p>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <Label>الباقات المعروضة</Label>
+            <p className="mt-1 text-xs text-muted">اختيار الباقات النشطة التي عليها خصم فعلي.</p>
+          </div>
+
+          {offerBundles.length === 0 ? (
+            <p className="rounded-md border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
+              لا توجد باقات نشطة عليها خصم حاليًا.
+            </p>
+          ) : (
+            <div className="max-h-[320px] divide-y divide-border overflow-y-auto border-y border-border">
+              {offerBundles.map((bundle) => {
+                const selected = (section.bundleIds ?? []).includes(Number(bundle.id))
+                return (
+                  <label key={bundle.id} className="flex cursor-pointer items-center gap-3 py-3">
+                    <Checkbox
+                      checked={selected}
+                      onCheckedChange={(checked) => toggleBundle(bundle.id, checked === true)}
+                    />
+                    <span className="h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border bg-background">
+                      {bundle.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={resolveMediaUrl(bundle.imageUrl)} alt="" className="h-full w-full object-cover" />
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-charcoal">{bundle.nameAr}</span>
+                      <span className="mt-1 flex items-center gap-2 text-xs">
+                        <span className="font-semibold text-primary-dark">{bundle.price.toLocaleString('ar-EG')} ج.م</span>
+                        <s className="text-muted">{bundle.compareAtPrice.toLocaleString('ar-EG')} ج.م</s>
+                      </span>
+                    </span>
+                    {selected && <Check className="h-4 w-4 text-success" aria-hidden="true" />}
+                  </label>
+                )
+              })}
+            </div>
+          )}
+          <p className="text-xs text-muted">تم اختيار {section.bundleIds?.length ?? 0} باقة</p>
         </div>
 
         <div className="flex justify-end border-t border-border pt-4">

@@ -10,6 +10,15 @@ export interface OfferPopupProduct {
   images: Array<{ id: string; url: string; alt?: string | null }>
 }
 
+export interface OfferPopupBundle {
+  id: string
+  slug: string
+  name: string
+  image: string
+  price: number
+  compareAtPrice: number
+}
+
 export interface StorefrontSectionContent {
   key: string
   type: string
@@ -20,10 +29,12 @@ export interface StorefrontSectionContent {
   buttonText?: string
   rewardPercent?: number
   productIds: number[]
+  bundleIds?: number[]
 }
 
 export interface PublicOfferPopup extends StorefrontSectionContent {
   products: OfferPopupProduct[]
+  bundles: OfferPopupBundle[]
 }
 
 export interface StorefrontSectionWrite {
@@ -35,6 +46,7 @@ export interface StorefrontSectionWrite {
   buttonText?: string
   rewardPercent?: number
   productIds: number[]
+  bundleIds?: number[]
 }
 
 export const marketingSectionsService = {

@@ -24,7 +24,7 @@ export function OffersPopup() {
     let cancelled = false
     let openTimer: number | undefined
     marketingSectionsService.getOfferPopup().then((data) => {
-      if (cancelled || !data?.isActive || data.products.length === 0) return
+      if (cancelled || !data?.isActive || (data.products.length === 0 && data.bundles.length === 0)) return
       setSection(data)
       openTimer = window.setTimeout(() => {
         if (cancelled) return
@@ -49,7 +49,7 @@ export function OffersPopup() {
 
   return (
     <aside
-      aria-label="عروض على المنتجات"
+      aria-label="عروض المنتجات والباقات"
       className="fixed bottom-[calc(var(--app-bar-height)+1rem)] left-3 z-40 w-[min(21rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-card sm:bottom-5 sm:left-5"
     >
       <div className="flex items-start gap-3 border-b border-border bg-accent/20 px-3 py-3">
@@ -97,6 +97,39 @@ export function OffersPopup() {
                 <span className="mt-1 flex items-center gap-2 text-xs">
                   <span className="font-semibold text-primary-dark">{formatPrice(product.price)}</span>
                   <s className="text-muted">{formatPrice(compareAtPrice)}</s>
+                </span>
+              </span>
+              <span className="shrink-0 text-xs font-semibold text-danger">
+                <BadgePercent className="inline h-3.5 w-3.5" aria-hidden="true" /> {discount}%
+              </span>
+            </Link>
+          )
+        })}
+        {section.bundles.slice(0, 2).map((bundle) => {
+          const discount = discountPercent(bundle.compareAtPrice, bundle.price)
+          return (
+            <Link
+              key={`bundle-${bundle.id}`}
+              href={`/bundles#${bundle.slug}`}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 py-3"
+            >
+              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-background">
+                {bundle.image && (
+                  <MediaImage
+                    src={bundle.image}
+                    alt={bundle.name}
+                    fill
+                    sizes="56px"
+                    className="object-contain p-1"
+                  />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-charcoal">{bundle.name}</span>
+                <span className="mt-1 flex items-center gap-2 text-xs">
+                  <span className="font-semibold text-primary-dark">{formatPrice(bundle.price)}</span>
+                  <s className="text-muted">{formatPrice(bundle.compareAtPrice)}</s>
                 </span>
               </span>
               <span className="shrink-0 text-xs font-semibold text-danger">

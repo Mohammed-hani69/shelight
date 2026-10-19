@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from app.core.errors import ApiError
 from app.core.security import admin_required
 from app.extensions import db
-from app.models import Product, StorefrontSection
+from app.models import Bundle, Product, StorefrontSection
 from app.modules.products.schemas import ProductListOut
 from app.modules.products.upload import save_uploaded_image
 from app.modules.marketing_sections.store_settings import (
@@ -392,6 +392,7 @@ class SectionWriteSchema(Schema):
     buttonText = fields.Str(load_default="", validate=validate.Length(max=80))
     rewardPercent = fields.Float(load_default=10, validate=validate.Range(min=1, max=100))
     productIds = fields.List(fields.Int(strict=True), load_default=list, validate=validate.Length(max=30))
+    bundleIds = fields.List(fields.Int(strict=True), load_default=list, validate=validate.Length(max=30))
 
 
 def _section_or_default(section_key: str) -> StorefrontSection | None:
@@ -417,6 +418,33 @@ def _products_for_section(content: dict) -> list[Product]:
     return [products_by_id[product_id] for product_id in ids if product_id in products_by_id]
 
 
+def _bundles_for_section(content: dict) -> list[Bundle]:
+    raw_ids = content.get("bundleIds", [])
+    ids = [value for value in raw_ids if isinstance(value, int) and not isinstance(value, bool)]
+    if not ids:
+        return []
+    bundles = db.session.execute(
+        select(Bundle).where(
+            Bundle.id.in_(ids),
+            Bundle.is_active.is_(True),
+            Bundle.compare_at_price > Bundle.price,
+        )
+    ).scalars().all()
+    bundles_by_id = {bundle.id: bundle for bundle in bundles}
+    return [bundles_by_id[bundle_id] for bundle_id in ids if bundle_id in bundles_by_id]
+
+
+def _bundle_offer_payload(bundle: Bundle) -> dict:
+    return {
+        "id": str(bundle.id),
+        "slug": bundle.slug,
+        "name": bundle.name_ar or bundle.name_en,
+        "image": bundle.image_url,
+        "price": float(bundle.price),
+        "compareAtPrice": float(bundle.compare_at_price),
+    }
+
+
 def _section_payload(section: StorefrontSection) -> dict:
     content = section.content or {}
     return {
@@ -429,6 +457,7 @@ def _section_payload(section: StorefrontSection) -> dict:
         "buttonText": content.get("buttonText", ""),
         "rewardPercent": content.get("rewardPercent", 10),
         "productIds": content.get("productIds", []),
+        "bundleIds": content.get("bundleIds", []),
     }
 
 
@@ -439,8 +468,10 @@ def get_public_section(section_key: str):
         return jsonify({"data": None})
     content = section.content or {}
     products = _products_for_section(content)
+    bundles = _bundles_for_section(content)
     payload = _section_payload(section)
     payload["products"] = ProductListOut(many=True, lang="ar").dump(products)
+    payload["bundles"] = [_bundle_offer_payload(bundle) for bundle in bundles]
     return jsonify({"data": payload})
 
 
@@ -462,6 +493,7 @@ def get_admin_section(section_key: str):
                 "buttonText": "",
                 "rewardPercent": 10,
                 "productIds": [],
+                "bundleIds": [],
             }
         }
     )
@@ -492,6 +524,22 @@ def save_admin_section(section_key: str):
                 code="invalid_offer_products",
             )
 
+    bundle_ids = data["bundleIds"]
+    if bundle_ids:
+        valid_bundle_ids = db.session.execute(
+            select(Bundle.id).where(
+                Bundle.id.in_(bundle_ids),
+                Bundle.is_active.is_(True),
+                Bundle.compare_at_price > Bundle.price,
+            )
+        ).scalars().all()
+        if len(set(valid_bundle_ids)) != len(set(bundle_ids)):
+            raise ApiError(
+                "اختر باقات نشطة عليها خصم فعلي فقط.",
+                status_code=400,
+                code="invalid_offer_bundles",
+            )
+
     section = _section_or_default(section_key)
     if section is None:
         section = StorefrontSection(section_key=section_key, section_type=data["sectionType"])
@@ -504,6 +552,7 @@ def save_admin_section(section_key: str):
         "buttonText": data["buttonText"],
         "rewardPercent": data["rewardPercent"],
         "productIds": list(dict.fromkeys(product_ids)),
+        "bundleIds": list(dict.fromkeys(bundle_ids)),
     }
     db.session.add(section)
     db.session.commit()
