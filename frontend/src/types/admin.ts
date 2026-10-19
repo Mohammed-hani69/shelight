@@ -55,6 +55,22 @@ export interface AdminAccountingSummary {
   grossProfit: number | null
   unknownCostUnits: number
   averageOrderValue: number
+  payments: AdminAccountingPayments
+}
+
+export interface AdminAccountingPayments {
+  onlinePaidAmount: number
+  onlinePaidOrders: number
+  onlinePendingAmount: number
+  onlinePendingOrders: number
+  onlineRefundedAmount: number
+  onlineRefundedOrders: number
+  sarieeCodAmount: number
+  sarieeCodOrders: number
+  otherCodPendingAmount: number
+  otherCodPendingOrders: number
+  codPaidAmount: number
+  codPaidOrders: number
 }
 
 export interface AdminAccountingProduct {

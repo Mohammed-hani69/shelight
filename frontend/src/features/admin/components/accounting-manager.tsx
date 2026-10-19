@@ -1,7 +1,18 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
-import { Banknote, Calculator, LoaderCircle, Package, Save, TrendingUp } from 'lucide-react'
+import {
+  Banknote,
+  BadgeCheck,
+  Calculator,
+  CreditCard,
+  LoaderCircle,
+  Package,
+  RotateCcw,
+  Truck,
+  Save,
+  TrendingUp,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,7 +49,21 @@ export function AccountingManager() {
   }
 
   useEffect(() => {
-    void loadReport({ from: '', to: '' })
+    let active = true
+    adminApi
+      .accounting({ from: '', to: '' })
+      .then((data) => {
+        if (active) setReport(data)
+      })
+      .catch((loadError) => {
+        if (active) setError(friendlyMessage(loadError))
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
   }, [])
 
   const products = report?.products ?? []
@@ -251,6 +276,64 @@ export function AccountingManager() {
               accent="from-plum/10 text-plum"
             />
           </div>
+
+          <section className="space-y-4">
+            <div>
+              <h2 className="font-display text-xl font-semibold text-plum">حركة المدفوعات والتحصيل</h2>
+              <p className="mt-1 text-sm text-muted">
+                التفصيل للطلبات المسلّمة في الفترة المحددة. المبالغ تشمل الشحن بعد الخصومات.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <SummaryCard
+                label="مدفوعات أونلاين مؤكدة"
+                value={formatPrice(summary.payments.onlinePaidAmount)}
+                detail={`${summary.payments.onlinePaidOrders} طلب — حالة الدفع: مدفوع`}
+                Icon={CreditCard}
+                accent="from-emerald-500/10 text-emerald-700"
+              />
+              <SummaryCard
+                label="أونلاين بانتظار التأكيد"
+                value={formatPrice(summary.payments.onlinePendingAmount)}
+                detail={`${summary.payments.onlinePendingOrders} طلب — لا تُحسب كمبالغ محصّلة`}
+                Icon={CreditCard}
+                accent="from-amber-500/10 text-amber-700"
+              />
+              <SummaryCard
+                label="مبالغ COD لدى سريع"
+                value={formatPrice(summary.payments.sarieeCodAmount)}
+                detail={`${summary.payments.sarieeCodOrders} طلب — غير مسجل كمدفوع ومربوط بسريع`}
+                Icon={Truck}
+                accent="from-sky-500/10 text-sky-700"
+              />
+              <SummaryCard
+                label="COD غير مسجل على سريع"
+                value={formatPrice(summary.payments.otherCodPendingAmount)}
+                detail={`${summary.payments.otherCodPendingOrders} طلب — بانتظار تسجيل التحصيل`}
+                Icon={Banknote}
+                accent="from-orange-500/10 text-orange-700"
+              />
+              <SummaryCard
+                label="COD مسجل كمدفوع"
+                value={formatPrice(summary.payments.codPaidAmount)}
+                detail={`${summary.payments.codPaidOrders} طلب — تم تسجيل التحصيل`}
+                Icon={BadgeCheck}
+                accent="from-violet-500/10 text-violet-700"
+              />
+              <SummaryCard
+                label="مدفوعات أونلاين مستردة"
+                value={formatPrice(summary.payments.onlineRefundedAmount)}
+                detail={`${summary.payments.onlineRefundedOrders} طلب — مستردة وليست ضمن المحصّل`}
+                Icon={RotateCcw}
+                accent="from-rose-500/10 text-rose-700"
+              />
+            </div>
+            <p className="rounded-lg border border-border bg-surface p-4 text-xs leading-6 text-muted">
+              يُنسب مبلغ الدفع عند الاستلام إلى سريع فقط إذا كان الطلب مربوطًا بمزوّد الشحن «سريع» وحالة الدفع
+              ما زالت معلّقة. الطلبات التي لا يظهر فيها سريع تُعرض منفصلة، والطلبات المسجلة كمدفوعة تُستبعد من
+              رصيد التحصيل المعلّق.
+            </p>
+          </section>
 
           <section className="space-y-3">
             <div>

@@ -321,6 +321,43 @@ def accounting_summary(start_date: date | None, end_date: date | None) -> dict:
     delivered_orders = db.session.execute(
         select(func.count(Order.id)).where(*filters)
     ).scalar_one()
+    payment_rows = db.session.execute(
+        select(
+            Order.payment_method,
+            Order.payment_status,
+            Order.shipping_provider,
+            func.sum(Order.total).label("amount"),
+            func.count(Order.id).label("orders"),
+        )
+        .where(*filters)
+        .group_by(Order.payment_method, Order.payment_status, Order.shipping_provider)
+    ).all()
+    payment_categories = {
+        "onlinePaid": (0.0, 0),
+        "onlinePending": (0.0, 0),
+        "onlineRefunded": (0.0, 0),
+        "sarieeCod": (0.0, 0),
+        "otherCodPending": (0.0, 0),
+        "codPaid": (0.0, 0),
+    }
+    for row in payment_rows:
+        category = None
+        if row.payment_method == "card" and row.payment_status in {"paid", "pending", "refunded"}:
+            category = f"online{row.payment_status.title()}"
+        elif row.payment_method == "cod" and row.payment_status == "pending":
+            category = "sarieeCod" if row.shipping_provider == "sariee" else "otherCodPending"
+        elif row.payment_method == "cod" and row.payment_status == "paid":
+            category = "codPaid"
+        if category is not None:
+            payment_categories[category] = (float(row.amount or 0), int(row.orders or 0))
+
+    payments = {
+        f"{name}Amount": amount
+        for name, (amount, _) in payment_categories.items()
+    } | {
+        f"{name}Orders": orders
+        for name, (_, orders) in payment_categories.items()
+    }
     partial_profit = net_sales_total - known_cost_total
 
     return {
@@ -337,6 +374,7 @@ def accounting_summary(start_date: date | None, end_date: date | None) -> dict:
             "averageOrderValue": (
                 float(net_sales_total / delivered_orders) if delivered_orders else 0
             ),
+            "payments": payments,
         },
         "products": product_rows,
     }

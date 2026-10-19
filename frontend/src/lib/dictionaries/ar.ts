@@ -181,7 +181,7 @@ export const ar: Dictionary = {
     payment: 'طريقة الدفع',
     cod: 'الدفع عند الاستلام',
     codSub: 'ادفعي لما طلبك يوصلك',
-    card: 'الدفع بالكارت',
+    card: 'الدفع اونلاين',
     cardSub: 'دفع أونلاين آمن',
     cardNote: 'الدفع بالكارت هيتاح قريبًا.',
     yourOrder: 'طلبك',
