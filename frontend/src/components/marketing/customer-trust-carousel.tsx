@@ -105,16 +105,26 @@ export function CustomerTrustCarousel() {
         </div>
       </div>
       {trustButtonVisible && (
-        <button
-          type="button"
-          onClick={() => {
-            setTrustButtonVisible(false)
-            sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }}
-          className="fixed bottom-[calc(var(--app-bar-height)+1rem)] left-1/2 z-40 -translate-x-1/2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:bottom-6"
-        >
-          شوف رأي عملائنا
-        </button>
+        <div className="fixed bottom-[calc(var(--app-bar-height)+1rem)] left-1/2 z-40 -translate-x-1/2 lg:bottom-6">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-1 rounded-full border-2 border-primary/70 motion-safe:animate-ping"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-1 rounded-full border-2 border-primary/70 motion-safe:animate-ping [animation-delay:750ms]"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setTrustButtonVisible(false)
+              sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }}
+            className="relative rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-safe:animate-pulse"
+          >
+            شوفي رأي عميلاتنا
+          </button>
+        </div>
       )}
     </section>
   )
