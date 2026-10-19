@@ -27,6 +27,9 @@ export interface StoreSettings {
   announcementEn: string
   whatsappPhone: string
   socialLinks: SocialLinks
+  onlinePaymentInfo: string
+  onlinePaymentDiscountEnabled: boolean
+  onlinePaymentDiscountPercent: number
 }
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
@@ -37,6 +40,9 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   announcementEn: 'Free shipping over {threshold}',
   whatsappPhone: '',
   socialLinks: EMPTY_SOCIAL_LINKS,
+  onlinePaymentInfo: 'سيتم إرسال تفاصيل الدفع الإلكتروني بعد تأكيد الطلب.',
+  onlinePaymentDiscountEnabled: false,
+  onlinePaymentDiscountPercent: 0,
 }
 
 export async function fetchStoreSettings(): Promise<StoreSettings> {

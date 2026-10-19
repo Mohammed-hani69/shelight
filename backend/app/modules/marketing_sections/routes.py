@@ -56,6 +56,15 @@ class StoreSettingsSchema(Schema):
     announcementEn = fields.Str(required=True, validate=validate.Length(max=240))
     whatsappPhone = fields.Str(load_default="", validate=validate.Length(max=32))
     socialLinks = fields.Nested(SocialLinksSchema, load_default=dict)
+    onlinePaymentInfo = fields.Str(
+        load_default="سيتم إرسال تفاصيل الدفع الإلكتروني بعد تأكيد الطلب.",
+        validate=validate.Length(max=2000),
+    )
+    onlinePaymentDiscountEnabled = fields.Bool(load_default=False)
+    onlinePaymentDiscountPercent = fields.Float(
+        load_default=0,
+        validate=validate.Range(min=0, max=100),
+    )
 
 
 class SitePageItemSchema(Schema):

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import secrets
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from flask import current_app
 from sqlalchemy import select
@@ -90,15 +90,23 @@ def checkout(
     )
     threshold = Decimal(str(store_settings["freeShippingThreshold"]))
     shipping_cost = Decimal(str(shipping_fee)) if subtotal < threshold else Decimal("0")
-    discount = Decimal("0")
+    coupon_discount = Decimal("0")
+    online_payment_discount = Decimal("0")
     coupon_code: str | None = None
     raw_code = (data.get("couponCode") or "").strip()
     if raw_code:
         coupon = coupon_service.validate(raw_code, subtotal, data["shipping"]["phone"])
-        discount = coupon_service.discount_amount(coupon, subtotal)
+        coupon_discount = coupon_service.discount_amount(coupon, subtotal)
         coupon_code = coupon.code
         coupon.used_count += 1
 
+    remaining_subtotal = max(Decimal("0"), subtotal - coupon_discount)
+    if data["paymentMethod"] == "card" and store_settings["onlinePaymentDiscountEnabled"]:
+        percent = Decimal(str(store_settings["onlinePaymentDiscountPercent"]))
+        online_payment_discount = (
+            remaining_subtotal * percent / Decimal("100")
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    discount = coupon_discount + online_payment_discount
     total = subtotal + Decimal(shipping_cost) - discount
 
     customer = db.session.get(Customer, customer_id) if customer_id else None

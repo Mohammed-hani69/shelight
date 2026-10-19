@@ -93,6 +93,62 @@ def test_checkout_with_coupon(client):
     assert data["couponCode"] == "SHELIGHT10"
 
 
+def test_online_payment_discount_applies_after_coupon(client):
+    login = client.post(
+        "/api/v1/admin/login",
+        json={"email": "admin@shelight.com", "password": "admin12345"},
+    )
+    assert login.status_code == 200
+    headers = {"Authorization": f"Bearer {login.get_json()['data']['accessToken']}"}
+    settings = client.get("/api/v1/storefront/settings").get_json()["data"]
+    settings.update(
+        {
+            "onlinePaymentDiscountEnabled": True,
+            "onlinePaymentDiscountPercent": 10,
+        }
+    )
+    saved = client.put("/api/v1/admin/store-settings", headers=headers, json=settings)
+    assert saved.status_code == 200
+
+    pid = product_id(client, "luminous-glow-serum")
+    response = client.post(
+        "/api/v1/orders/checkout",
+        json=checkout_payload(pid, paymentMethod="card", couponCode="SHELIGHT10"),
+    )
+
+    assert response.status_code == 201
+    data = response.get_json()["data"]
+    assert data["subtotal"] == 890.0
+    assert data["discountAmount"] == 169.1
+    assert data["total"] == 780.9
+
+
+def test_online_payment_discount_does_not_apply_to_cod(client):
+    login = client.post(
+        "/api/v1/admin/login",
+        json={"email": "admin@shelight.com", "password": "admin12345"},
+    )
+    assert login.status_code == 200
+    headers = {"Authorization": f"Bearer {login.get_json()['data']['accessToken']}"}
+    settings = client.get("/api/v1/storefront/settings").get_json()["data"]
+    settings.update(
+        {
+            "onlinePaymentDiscountEnabled": True,
+            "onlinePaymentDiscountPercent": 10,
+        }
+    )
+    saved = client.put("/api/v1/admin/store-settings", headers=headers, json=settings)
+    assert saved.status_code == 200
+
+    pid = product_id(client, "luminous-glow-serum")
+    response = client.post("/api/v1/orders/checkout", json=checkout_payload(pid))
+
+    assert response.status_code == 201
+    data = response.get_json()["data"]
+    assert data["discountAmount"] == 0
+    assert data["total"] == 950
+
+
 def test_checkout_decrements_stock(client):
     pid = product_id(client, "radiant-cream-cleanser")
     before = client.get("/api/v1/products/radiant-cream-cleanser").get_json()["data"]["stock"]

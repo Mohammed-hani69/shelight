@@ -165,10 +165,16 @@ export function CheckoutForm() {
 
   // الخصم لا يتجاوز المجموع الفرعي، مثل ما يفعل الخادم تماماً.
   const discount = couponCode ? Math.min(couponDiscount, subtotal) : 0
+  const onlinePaymentDiscount =
+    paymentMethod === 'card' && settings.onlinePaymentDiscountEnabled
+      ? Math.round(
+          Math.max(0, subtotal - discount) * settings.onlinePaymentDiscountPercent
+        ) / 100
+      : 0
   const shipping = subtotal === 0 || subtotal >= settings.freeShippingThreshold
     ? 0
     : settings.governorateFees[selectedGovernorate] ?? settings.defaultShippingFee
-  const total = Math.max(0, subtotal + shipping - discount)
+  const total = Math.max(0, subtotal + shipping - discount - onlinePaymentDiscount)
 
   // يسجّل بدء الدفع مرة واحدة عند امتلاء السلة.
   const checkoutTracked = useRef(false)
@@ -455,10 +461,20 @@ export function CheckoutForm() {
             </button>
           </div>
           {paymentMethod === 'card' && (
-            <p className="mt-4 flex items-center gap-2 rounded-xl bg-accent/30 p-3 text-xs text-muted">
-              <Lock className="h-4 w-4 text-success" aria-hidden="true" />
-              {t.checkout.cardNote}
-            </p>
+            <div className="mt-4 space-y-2 rounded-xl bg-accent/30 p-3 text-xs text-muted">
+              <p className="flex items-center gap-2">
+                <Lock className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                {t.checkout.cardNote}
+              </p>
+              {settings.onlinePaymentInfo.trim() && (
+                <p className="whitespace-pre-line ps-6">{settings.onlinePaymentInfo}</p>
+              )}
+              {onlinePaymentDiscount > 0 && (
+                <p className="ps-6 font-medium text-success">
+                  خصم {settings.onlinePaymentDiscountPercent}% عند الدفع الإلكتروني.
+                </p>
+              )}
+            </div>
           )}
         </section>
       </div>
@@ -541,6 +557,12 @@ export function CheckoutForm() {
             <div className="flex justify-between text-success">
               <dt>{t.checkout.discount}</dt>
               <dd>-{formatPrice(discount)}</dd>
+            </div>
+          )}
+          {onlinePaymentDiscount > 0 && (
+            <div className="flex justify-between text-success">
+              <dt>خصم الدفع الإلكتروني ({settings.onlinePaymentDiscountPercent}%)</dt>
+              <dd>-{formatPrice(onlinePaymentDiscount)}</dd>
             </div>
           )}
           <div className="mt-2 flex justify-between border-t border-border pt-3 text-base">

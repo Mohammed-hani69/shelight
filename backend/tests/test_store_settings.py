@@ -69,3 +69,36 @@ def test_social_links_accept_missing_payload_key(client):
         "instagram": "",
         "tiktok": "",
     }
+
+
+def test_admin_can_configure_online_payment_instructions_and_discount(client):
+    headers = _admin_headers(client)
+    response = client.put(
+        "/api/v1/admin/store-settings",
+        headers=headers,
+        json=_base_payload(
+            onlinePaymentInfo="حوّلي المبلغ إلى المحفظة 01000000000",
+            onlinePaymentDiscountEnabled=True,
+            onlinePaymentDiscountPercent=12.5,
+        ),
+    )
+
+    assert response.status_code == 200
+    saved = response.get_json()["data"]
+    assert saved["onlinePaymentInfo"] == "حوّلي المبلغ إلى المحفظة 01000000000"
+    assert saved["onlinePaymentDiscountEnabled"] is True
+    assert saved["onlinePaymentDiscountPercent"] == 12.5
+    public = client.get("/api/v1/storefront/settings").get_json()["data"]
+    assert public["onlinePaymentInfo"] == saved["onlinePaymentInfo"]
+    assert public["onlinePaymentDiscountEnabled"] is True
+    assert public["onlinePaymentDiscountPercent"] == 12.5
+
+
+def test_online_payment_discount_percent_cannot_exceed_100(client):
+    response = client.put(
+        "/api/v1/admin/store-settings",
+        headers=_admin_headers(client),
+        json=_base_payload(onlinePaymentDiscountPercent=100.1),
+    )
+
+    assert response.status_code == 400

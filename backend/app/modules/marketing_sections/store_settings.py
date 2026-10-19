@@ -25,6 +25,9 @@ def default_store_settings() -> dict[str, Any]:
         "announcementEn": "Free shipping over {threshold}",
         "whatsappPhone": "",
         "socialLinks": {key: "" for key in SOCIAL_KEYS},
+        "onlinePaymentInfo": "سيتم إرسال تفاصيل الدفع الإلكتروني بعد تأكيد الطلب.",
+        "onlinePaymentDiscountEnabled": False,
+        "onlinePaymentDiscountPercent": 0,
     }
 
 
@@ -75,7 +78,19 @@ def get_store_settings() -> dict[str, Any]:
         "announcementEn": str(content.get("announcementEn") or defaults["announcementEn"]),
         "whatsappPhone": str(content.get("whatsappPhone") or ""),
         "socialLinks": normalize_social_links(content.get("socialLinks")),
+        "onlinePaymentInfo": str(content.get("onlinePaymentInfo", defaults["onlinePaymentInfo"])),
+        "onlinePaymentDiscountEnabled": bool(content.get("onlinePaymentDiscountEnabled", False)),
+        "onlinePaymentDiscountPercent": _online_payment_discount_percent(
+            content.get("onlinePaymentDiscountPercent", defaults["onlinePaymentDiscountPercent"])
+        ),
     }
+
+
+def _online_payment_discount_percent(value: Any) -> float:
+    try:
+        return min(100, max(0, float(value)))
+    except (TypeError, ValueError):
+        return 0
 
 
 def save_store_settings(content: dict[str, Any]) -> dict[str, Any]:

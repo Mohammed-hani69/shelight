@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MessageCircle, Save, Share2, Truck } from 'lucide-react'
+import { CreditCard, MessageCircle, Save, Share2, Truck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { adminApi } from '@/features/admin/services/admin-api'
 import { ErrorState } from '@/features/admin/components/error-state'
 import { DEFAULT_STORE_SETTINGS, GOVERNORATE_OPTIONS, type StoreSettings } from '@/features/store-settings/store-settings'
@@ -79,6 +81,60 @@ export function StoreSettingsManager() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-border bg-surface p-4 sm:p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h2 className="font-display text-lg font-semibold text-plum">الدفع الإلكتروني</h2>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="online-payment-info">معلومات الدفع التي تظهر للعميل</Label>
+              <Textarea
+                id="online-payment-info"
+                maxLength={2000}
+                value={form.onlinePaymentInfo}
+                onChange={(event) => setForm((prev) => ({ ...prev, onlinePaymentInfo: event.target.value }))}
+                placeholder="أضيفي تعليمات أو بيانات الدفع الإلكتروني"
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-border p-3">
+              <label htmlFor="online-payment-discount-enabled" className="flex cursor-pointer items-center gap-2 text-sm">
+                <Checkbox
+                  id="online-payment-discount-enabled"
+                  checked={form.onlinePaymentDiscountEnabled}
+                  onCheckedChange={(checked) =>
+                    setForm((prev) => ({ ...prev, onlinePaymentDiscountEnabled: checked === true }))
+                  }
+                />
+                تفعيل خصم الدفع الإلكتروني
+              </label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="online-payment-discount-percent">نسبة الخصم</Label>
+                <Input
+                  id="online-payment-discount-percent"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  className="w-24"
+                  value={form.onlinePaymentDiscountPercent}
+                  disabled={!form.onlinePaymentDiscountEnabled}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      onlinePaymentDiscountPercent: Number(event.target.value),
+                    }))
+                  }
+                />
+                <span className="text-sm text-muted">٪</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted">
+              يُطبّق الخصم على المنتجات عند اختيار الدفع الإلكتروني، وبعد خصم أي كوبون، ولا يشمل الشحن.
+            </p>
           </div>
         </section>
 
