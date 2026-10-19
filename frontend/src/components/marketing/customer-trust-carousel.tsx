@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { A11y, Autoplay, Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -16,6 +16,8 @@ import { resolveMediaUrl } from '@/lib/api/media'
 
 export function CustomerTrustCarousel() {
   const [section, setSection] = useState<CustomerTrustSection | null>(null)
+  const [trustButtonVisible, setTrustButtonVisible] = useState(true)
+  const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     let active = true
@@ -35,7 +37,11 @@ export function CustomerTrustCarousel() {
   if (!section?.isActive || section.images.length === 0) return null
 
   return (
-    <section className="overflow-hidden py-12 md:py-16" aria-label={section.title}>
+    <section
+      ref={sectionRef}
+      className="scroll-mt-24 overflow-hidden py-12 md:py-16"
+      aria-label={section.title}
+    >
       <div className="container-shelight">
         <SectionHeading title={section.title} subtitle={section.description} />
         <div className="relative">
@@ -98,6 +104,18 @@ export function CustomerTrustCarousel() {
           )}
         </div>
       </div>
+      {trustButtonVisible && (
+        <button
+          type="button"
+          onClick={() => {
+            setTrustButtonVisible(false)
+            sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }}
+          className="fixed bottom-[calc(var(--app-bar-height)+1rem)] left-1/2 z-40 -translate-x-1/2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:bottom-6"
+        >
+          شوف رأي عملائنا
+        </button>
+      )}
     </section>
   )
 }
