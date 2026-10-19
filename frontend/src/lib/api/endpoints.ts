@@ -98,6 +98,7 @@ export const endpoints = {
     moveBundle: (id: string) => `/admin/bundles/${id}/move`,
     journal: '/admin/journal',
     article: (id: string) => `/admin/journal/${id}`,
+    uploadJournalImage: '/admin/journal/upload',
     banners: '/admin/banners',
     storefrontSection: (key: string) => `/admin/storefront/sections/${encodeURIComponent(key)}`,
     reviews: '/admin/reviews',

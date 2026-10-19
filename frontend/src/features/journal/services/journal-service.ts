@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api/client'
 import { endpoints } from '@/lib/api/endpoints'
+import { resolveMediaUrl } from '@/lib/api/media'
 import { journalPosts } from '@/mock-data/journal'
 import type { JournalPost } from '@/types/journal'
 
@@ -14,13 +15,20 @@ const USE_REMOTE_API = process.env.NEXT_PUBLIC_USE_REMOTE_API === 'true'
 export const journalService = {
   async list(): Promise<JournalPost[]> {
     if (!USE_REMOTE_API) return journalPosts
-    return apiClient.get<JournalPost[]>(`${endpoints.journal.list}?lang=ar`)
+    const posts = await apiClient.get<JournalPost[]>(`${endpoints.journal.list}?lang=ar`)
+    return posts.map((post) => ({
+      ...post,
+      image: resolveMediaUrl(post.image),
+    }))
   },
 
   async getBySlug(slug: string): Promise<JournalPost | undefined> {
     if (!USE_REMOTE_API) return journalPosts.find((post) => post.slug === slug)
     try {
-      return await apiClient.get<JournalPost>(`${endpoints.journal.detail(slug)}?lang=ar`)
+      const post = await apiClient.get<JournalPost>(
+        `${endpoints.journal.detail(slug)}?lang=ar`
+      )
+      return { ...post, image: resolveMediaUrl(post.image) }
     } catch {
       return undefined
     }

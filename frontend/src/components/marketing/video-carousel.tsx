@@ -8,12 +8,14 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import { toast } from 'sonner'
 import { SectionHeading } from '@/components/marketing/section-heading'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { videosService, type VideoSection } from '@/features/videos/videos-service'
 import { resolveMediaUrl } from '@/lib/api/media'
 import { useI18n } from '@/lib/i18n/use-i18n'
 
 export function VideoCarousel() {
   const [section, setSection] = useState<VideoSection | null>(null)
+  const [selectedVideo, setSelectedVideo] = useState<VideoSection['videos'][number] | null>(null)
   const { t } = useI18n()
 
   useEffect(() => {
@@ -59,16 +61,23 @@ export function VideoCarousel() {
             {section.videos.map((video, index) => (
               <SwiperSlide key={`${video.url}-${index}`} className="!h-auto">
                 <figure className="overflow-hidden rounded-xl border border-border bg-surface shadow-soft">
-                  <video
-                    src={resolveMediaUrl(video.url)}
-                    aria-label={video.title}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    className="aspect-[9/16] w-full bg-charcoal object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setSelectedVideo(video)}
+                    aria-label={`تشغيل فيديو ${video.title} بالصوت`}
+                    className="block w-full cursor-pointer"
+                  >
+                    <video
+                      src={resolveMediaUrl(video.url)}
+                      aria-hidden="true"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      className="aspect-[9/16] w-full bg-charcoal object-cover"
+                    />
+                  </button>
                   <figcaption className="truncate px-3 py-2.5 text-center text-sm font-medium text-plum">
                     {video.title}
                   </figcaption>
@@ -96,6 +105,29 @@ export function VideoCarousel() {
           )}
         </div>
       </div>
+      <Dialog
+        open={selectedVideo !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedVideo(null)
+        }}
+      >
+        <DialogContent className="w-[min(92vw,56rem)] max-w-none border-0 bg-transparent p-0 shadow-none sm:rounded-xl [&>button]:right-2 [&>button]:top-2 [&>button]:z-10 [&>button]:rounded-full [&>button]:bg-black/60 [&>button]:p-2 [&>button]:text-white [&>button]:opacity-100">
+          {selectedVideo && (
+            <>
+              <DialogTitle className="sr-only">{selectedVideo.title}</DialogTitle>
+              <video
+                key={selectedVideo.url}
+                src={resolveMediaUrl(selectedVideo.url)}
+                aria-label={selectedVideo.title}
+                autoPlay
+                controls
+                playsInline
+                className="max-h-[85vh] w-full rounded-xl bg-black object-contain"
+              />
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

@@ -554,6 +554,17 @@ def list_articles():
     return jsonify({"data": [journal_admin_payload(a) for a in articles]})
 
 
+@bp.post("/journal/upload")
+@admin_required()
+def upload_journal_image():
+    """رفع صورة مقال وإرجاع مسارها لحفظه مع المقال."""
+    path = save_uploaded_image(
+        subdir="journal",
+        max_bytes_key="PRODUCT_MAX_BYTES",
+    )
+    return jsonify({"data": {"path": path}}), 201
+
+
 @bp.post("/journal")
 @admin_required()
 def create_article():

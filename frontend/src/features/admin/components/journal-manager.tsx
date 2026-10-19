@@ -25,8 +25,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorState } from '@/features/admin/components/error-state'
+import { AdminImageUpload } from '@/features/admin/components/admin-image-upload'
 import { adminApi } from '@/features/admin/services/admin-api'
 import { friendlyMessage } from '@/lib/api/errors'
+import { resolveMediaUrl } from '@/lib/api/media'
 import { cn } from '@/lib/utils/cn'
 import type { AdminJournalArticle, AdminJournalWrite } from '@/types/admin'
 
@@ -96,6 +98,7 @@ export function JournalManager() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [imageUploading, setImageUploading] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [editing, setEditing] = useState<AdminJournalArticle | null>(null)
   const [formOpen, setFormOpen] = useState(false)
@@ -311,10 +314,9 @@ export function JournalManager() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {article.imageUrl ? (
-                            // روابط خارجية يكتبها المدير — لا نقيّدها بالنطاقات المعتمدة
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={article.imageUrl}
+                              src={resolveMediaUrl(article.imageUrl)}
                               alt=""
                               className="h-12 w-16 shrink-0 rounded-md object-cover"
                             />
@@ -484,33 +486,14 @@ export function JournalManager() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-[1fr_11rem] sm:items-start">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="j-image">رابط الصورة (اختياري)</Label>
-                    <Input
-                      id="j-image"
-                      dir="ltr"
-                      placeholder="https://…"
-                      value={form.imageUrl}
-                      onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                    />
-                    <p className="text-xs text-muted">
-                      رابط صورة خارجي — تظهر في بطاقة المقال بالمدونة.
-                    </p>
-                  </div>
-                  <div className="h-24 w-full overflow-hidden rounded-xl border border-border bg-muted/30">
-                    {form.imageUrl.trim() ? (
-                      // روابط خارجية يكتبها المدير — لا نقيّدها بالنطاقات المعتمدة
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={form.imageUrl} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted">
-                        <Newspaper className="h-5 w-5" aria-hidden="true" />
-                        <span className="text-[11px]">معاينة الصورة</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <AdminImageUpload
+                  id="j-image"
+                  label="صورة المقال (اختياري)"
+                  value={form.imageUrl}
+                  onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
+                  uploadImage={(file) => adminApi.uploadJournalImage(file)}
+                  onUploadingChange={setImageUploading}
+                />
               </section>
 
               <section className="space-y-3">
@@ -681,8 +664,8 @@ export function JournalManager() {
                   <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
                     إلغاء
                   </Button>
-                  <Button type="submit" disabled={saving}>
-                    {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                  <Button type="submit" disabled={saving || imageUploading}>
+                    {(saving || imageUploading) && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                     {editing ? 'حفظ التعديلات' : 'إنشاء المقال'}
                   </Button>
                 </div>

@@ -291,6 +291,17 @@ export const adminApi = {
     await apiClient.delete(endpoints.admin.article(id))
   },
 
+  /** رفع صورة مقال — يعيد مسار الصورة لحفظه مع بيانات المقال. */
+  async uploadJournalImage(file: File): Promise<string> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await apiClient.postForm<{ path: string }>(
+      endpoints.admin.uploadJournalImage,
+      formData
+    )
+    return response.path
+  },
+
   //----- بنرات الصفحة الرئيسية -----
   /** كل البنرات (نشطة ومخفية) لإدارة الهيرو والإديتوريال. */
   async listBanners(): Promise<AdminBanner[]> {
