@@ -61,6 +61,7 @@ export const endpoints = {
     page: (key: string) => `/storefront/pages/${encodeURIComponent(key)}`,
   },
   storefrontVideos: '/storefront/videos',
+  customerTrust: '/storefront/customer-trust',
   orders: {
     list: '/orders',
     checkout: '/orders/checkout',
@@ -78,6 +79,8 @@ export const endpoints = {
     uploadStorefrontPageImage: (key: string) => `/admin/storefront/pages/${encodeURIComponent(key)}/image`,
     storefrontVideos: '/admin/storefront/videos',
     uploadStorefrontVideo: '/admin/storefront/videos/upload',
+    customerTrust: '/admin/storefront/customer-trust',
+    uploadCustomerTrustImage: '/admin/storefront/customer-trust/image',
     products: '/admin/products',
     product: (id: string) => `/admin/products/${id}`,
     uploadProductImage: '/admin/products/upload',

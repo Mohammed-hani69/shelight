@@ -30,9 +30,12 @@ pages_public_bp = Blueprint("site_pages", __name__, url_prefix="/storefront/page
 pages_admin_bp = Blueprint("site_pages_admin", __name__, url_prefix="/admin/storefront/pages")
 videos_public_bp = Blueprint("storefront_videos", __name__, url_prefix="/storefront/videos")
 videos_admin_bp = Blueprint("storefront_videos_admin", __name__, url_prefix="/admin/storefront/videos")
+trust_public_bp = Blueprint("customer_trust", __name__, url_prefix="/storefront/customer-trust")
+trust_admin_bp = Blueprint("customer_trust_admin", __name__, url_prefix="/admin/storefront/customer-trust")
 
 SITE_PAGE_KEYS = {"about", "contact", "shipping-returns", "faq"}
 VIDEO_SECTION_KEY = "homepage_videos"
+TRUST_SECTION_KEY = "customer_trust"
 
 
 class SocialLinksSchema(Schema):
@@ -91,6 +94,22 @@ class VideoSectionWriteSchema(Schema):
     )
 
 
+class CustomerTrustImageSchema(Schema):
+    title = fields.Str(required=True, validate=validate.Length(min=1, max=160))
+    url = fields.Str(required=True, validate=validate.Length(min=1, max=500))
+
+
+class CustomerTrustWriteSchema(Schema):
+    isActive = fields.Bool(load_default=False)
+    title = fields.Str(load_default="", validate=validate.Length(max=160))
+    description = fields.Str(load_default="", validate=validate.Length(max=500))
+    images = fields.List(
+        fields.Nested(CustomerTrustImageSchema),
+        load_default=list,
+        validate=validate.Length(max=30),
+    )
+
+
 def _video_section() -> StorefrontSection | None:
     return StorefrontSection.query.filter_by(section_key=VIDEO_SECTION_KEY).first()
 
@@ -113,6 +132,85 @@ def _require_uploaded_videos(videos: list[dict]) -> None:
             status_code=400,
             code="video_must_be_uploaded",
         )
+
+
+def _customer_trust_section() -> StorefrontSection | None:
+    return StorefrontSection.query.filter_by(section_key=TRUST_SECTION_KEY).first()
+
+
+def _customer_trust_payload(section: StorefrontSection | None) -> dict:
+    content = section.content if section and isinstance(section.content, dict) else {}
+    raw_images = content.get("images", [])
+    return {
+        "isActive": bool(section and section.is_active),
+        "title": content.get("title", "ثقة عملائنا فينا"),
+        "description": content.get("description", ""),
+        "images": raw_images if isinstance(raw_images, list) else [],
+    }
+
+
+def _require_uploaded_customer_trust_images(images: list[dict]) -> None:
+    if any(not image["url"].startswith("/uploads/customer-trust/") for image in images):
+        raise ApiError(
+            "يجب رفع الصور إلى الموقع قبل إضافتها.",
+            status_code=400,
+            code="customer_trust_image_must_be_uploaded",
+        )
+
+
+@trust_public_bp.get("")
+def get_public_customer_trust():
+    payload = _customer_trust_payload(_customer_trust_section())
+    if not payload["isActive"]:
+        return jsonify({"data": None})
+    payload["images"] = [
+        image for image in payload["images"]
+        if isinstance(image, dict)
+        and isinstance(image.get("url"), str)
+        and image["url"].startswith("/uploads/customer-trust/")
+    ]
+    return jsonify({"data": payload if payload["images"] else None})
+
+
+@trust_admin_bp.get("")
+@admin_required()
+def get_admin_customer_trust():
+    return jsonify({"data": _customer_trust_payload(_customer_trust_section())})
+
+
+@trust_admin_bp.put("")
+@admin_required()
+def save_admin_customer_trust():
+    try:
+        content = CustomerTrustWriteSchema().load(request.get_json(silent=True) or {})
+    except ValidationError as error:
+        raise ApiError(
+            "بيانات قسم ثقة العملاء غير صالحة",
+            status_code=400,
+            code="invalid_customer_trust_section",
+        ) from error
+    _require_uploaded_customer_trust_images(content["images"])
+
+    section = _customer_trust_section()
+    if section is None:
+        section = StorefrontSection(section_key=TRUST_SECTION_KEY, section_type="customer_trust")
+    section.section_type = "customer_trust"
+    section.is_active = content["isActive"]
+    section.content = {
+        "title": content["title"],
+        "description": content["description"],
+        "images": content["images"],
+    }
+    db.session.add(section)
+    db.session.commit()
+    return jsonify({"data": _customer_trust_payload(section)})
+
+
+@trust_admin_bp.post("/image")
+@admin_required()
+def upload_customer_trust_image():
+    path = save_uploaded_image(subdir="customer-trust", max_bytes_key="BANNER_MAX_BYTES")
+    return jsonify({"data": {"path": path}}), 201
 
 
 @videos_public_bp.get("")

@@ -14,6 +14,7 @@ import { friendlyMessage } from '@/lib/api/errors'
 import { resolveMediaUrl } from '@/lib/api/media'
 import type { AdminProduct } from '@/types/admin'
 import { ReferralCampaignManager } from '@/features/admin/components/referral-campaign-manager'
+import { CustomerTrustManager } from '@/features/admin/components/customer-trust-manager'
 
 const SECTION_KEY = 'offers_popup'
 const EMPTY_SECTION: StorefrontSectionContent = {
@@ -102,6 +103,7 @@ export function StorefrontSectionsManager() {
   return (
     <div className="space-y-6">
       <ReferralCampaignManager />
+      <CustomerTrustManager />
       {error && <ErrorState message={error} onRetry={() => window.location.reload()} />}
 
       <section className="space-y-5 rounded-lg border border-border bg-surface p-4 sm:p-6">

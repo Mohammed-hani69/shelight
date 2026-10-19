@@ -9,6 +9,7 @@ import {
   CustomerReviews,
 } from '@/components/marketing'
 import { VideoCarousel } from '@/components/marketing/video-carousel'
+import { CustomerTrustCarousel } from '@/components/marketing/customer-trust-carousel'
 import { config } from '@/config/site'
 import { ReferralCampaignBanner } from '@/features/referrals/components/referral-campaign-banner'
 import { USE_REMOTE_API } from '@/features/products/services/product-service'
@@ -83,6 +84,7 @@ export default function HomePage() {
       <RoutineBundles />
       <ReferralCampaignBanner />
       <VideoCarousel />
+      <CustomerTrustCarousel />
       <EditorialBanner />
       <WhyChoose />
       <DoctorReviews />
