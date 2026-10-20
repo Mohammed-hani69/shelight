@@ -14,6 +14,7 @@ import { addToCartAndOpen, useCartStore } from '@/store/cart-store'
 import { formatPrice } from '@/lib/utils/format-price'
 import { useI18n } from '@/lib/i18n/use-i18n'
 import type { Bundle } from '@/types/bundle'
+import { trackMetaPixel } from '@/features/tracking/meta-pixel'
 
 /**
  * صفحة الباقات: شراء الروتين كاملاً بخصم.
@@ -48,6 +49,17 @@ export function BundlesPage() {
     try {
       // كل عضو بكميته المعلنة في الباقة، لا بكمية ثابتة.
       bundle.items.forEach((item) => addToCartAndOpen(item.product, item.quantity))
+      trackMetaPixel('AddToCart', {
+        content_type: 'product',
+        content_ids: bundle.items.map((item) => item.productId),
+        content_name: bundle.name,
+        contents: bundle.items.map((item) => ({
+          id: item.productId,
+          quantity: item.quantity,
+        })),
+        value: bundle.price,
+        currency: 'EGP',
+      })
       if (bundle.couponCode) {
         useCartStore.getState().setCouponCode(bundle.couponCode)
         toast.success(

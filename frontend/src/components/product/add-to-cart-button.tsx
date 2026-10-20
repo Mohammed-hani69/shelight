@@ -8,6 +8,7 @@ import { addToCartAndOpen } from '@/store/cart-store'
 import type { Product } from '@/types/product'
 import { cn } from '@/lib/utils/cn'
 import { useI18n } from '@/lib/i18n/use-i18n'
+import { trackMetaPixel } from '@/features/tracking/meta-pixel'
 
 interface AddToCartButtonProps {
   product: Product
@@ -36,6 +37,13 @@ export function AddToCartButton({
     // نتأخر قليلاً لنعطي إحساس العملية الحقيقية دون حجب الـ UI
     window.setTimeout(() => {
       addToCartAndOpen(product, quantity, variantId)
+      trackMetaPixel('AddToCart', {
+        content_type: 'product',
+        content_ids: [product.id],
+        content_name: product.name,
+        value: product.price * quantity,
+        currency: 'EGP',
+      })
       setPending(false)
       toast.success(`${product.name} added to your bag`)
     }, 250)

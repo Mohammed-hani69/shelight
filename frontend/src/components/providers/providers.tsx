@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Toaster } from 'sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useI18nStore } from '@/store/i18n-store'
+import { MetaPixelTracker } from '@/features/tracking/meta-pixel-tracker'
 
 /** مزودات عامة للتطبيق: TanStack Query + التنبيهات + الـ Tooltip */
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={200}>
+        <MetaPixelTracker />
         {children}
         <Toaster richColors closeButton position="top-center" />
       </TooltipProvider>

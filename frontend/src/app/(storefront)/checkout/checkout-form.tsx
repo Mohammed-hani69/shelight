@@ -21,6 +21,7 @@ import {
 import { useCartStore } from '@/store/cart-store'
 import { useAuthStore } from '@/store/auth-store'
 import { trackingClient } from '@/features/tracking/tracking-client'
+import { trackMetaPixel } from '@/features/tracking/meta-pixel'
 import { ordersApi } from '@/features/orders/services/orders-api'
 import { couponApi } from '@/features/coupons/services/coupon-api'
 import { formatPrice } from '@/lib/utils/format-price'
@@ -189,7 +190,19 @@ export function CheckoutForm() {
       itemsCount: items.length,
       subtotal,
     })
-  }, [items.length, subtotal])
+    trackMetaPixel('InitiateCheckout', {
+      content_type: 'product',
+      content_ids: items.map((item) => item.productId),
+      contents: items.map((item) => ({
+        id: item.productId,
+        quantity: item.quantity,
+        item_price: item.price,
+      })),
+      num_items: items.reduce((count, item) => count + item.quantity, 0),
+      value: subtotal,
+      currency: 'EGP',
+    })
+  }, [items, subtotal])
 
   const applyCoupon = async () => {
     const code = couponInput.trim()
@@ -257,7 +270,7 @@ export function CheckoutForm() {
         toast.error(friendlyMessage(error, 'egyptian'))
       })
       .finally(() => setCouponLoading(false))
-  }, [items.length, subtotal])
+  }, [items.length, subtotal, getValues])
 
   // بعد إتمام الطلب تُفرَّغ السلة، فنعرض شاشة التأكيد برقم الطلب.
   if (confirmation && items.length === 0) {
@@ -308,6 +321,23 @@ export function CheckoutForm() {
           total: order.total,
           placedAt: order.placedAt,
         }
+        trackMetaPixel(
+          'Purchase',
+          {
+            content_type: 'product',
+            content_ids: items.map((item) => item.productId),
+            contents: items.map((item) => ({
+              id: item.productId,
+              quantity: item.quantity,
+              item_price: item.price,
+            })),
+            num_items: items.reduce((count, item) => count + item.quantity, 0),
+            value: order.total,
+            currency: 'EGP',
+            order_id: order.number,
+          },
+          order.number
+        )
         saveOrderConfirmation(next)
         clear()
         setConfirmation(next)
@@ -439,6 +469,7 @@ export function CheckoutForm() {
               onClick={() => {
                 setValue('paymentMethod', 'cod')
                 trackingClient.track('add_payment_info', { paymentMethod: 'cod' })
+                trackMetaPixel('AddPaymentInfo', { content_category: 'cod', currency: 'EGP', value: total })
               }}
               className={cn(
                 'flex items-center gap-3 rounded-xl border p-4 text-start transition-colors',
@@ -459,6 +490,7 @@ export function CheckoutForm() {
               onClick={() => {
                 setValue('paymentMethod', 'card')
                 trackingClient.track('add_payment_info', { paymentMethod: 'card' })
+                trackMetaPixel('AddPaymentInfo', { content_category: 'card', currency: 'EGP', value: onlinePaymentTotal })
               }}
               className={cn(
                 'flex items-center gap-3 rounded-xl border p-4 text-start transition-colors',

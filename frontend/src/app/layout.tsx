@@ -70,6 +70,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* suppressHydrationWarning: بعض إضافات المتصفح (مثل Smart Converter)
           تُضيف سمات إلى <body> قبل تشغيل React فتُطلق تحذير hydration */}
       <body suppressHydrationWarning>
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src="https://www.facebook.com/tr?id=1646327953504209&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
         <Providers>{children}</Providers>
       </body>
     </html>

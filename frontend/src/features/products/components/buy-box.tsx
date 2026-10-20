@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils/cn'
 import { useI18n } from '@/lib/i18n/use-i18n'
 import { useStoreSettings } from '@/features/store-settings/use-store-settings'
 import { formatPrice } from '@/lib/utils/format-price'
+import { trackMetaPixel } from '@/features/tracking/meta-pixel'
 
 interface BuyBoxProps {
   product: Product
@@ -48,6 +49,13 @@ export function BuyBox({ product }: BuyBoxProps) {
 
   const handleBuyNow = () => {
     addToCartAndOpen(product, quantity, selectedVariant?.id)
+    trackMetaPixel('AddToCart', {
+      content_type: 'product',
+      content_ids: [product.id],
+      content_name: product.name,
+      value: price * quantity,
+      currency: 'EGP',
+    })
     toast.success(t.productPage.checkoutToast)
   }
 
