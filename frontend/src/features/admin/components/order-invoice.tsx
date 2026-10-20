@@ -1,3 +1,7 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
+import JsBarcode from 'jsbarcode'
 import Image from 'next/image'
 import { config } from '@/config/site'
 import { formatPrice } from '@/lib/utils/format-price'
@@ -43,9 +47,24 @@ function formatDate(value?: string | null): string {
  * تناسب الورق. تُطبع عبر `window.print()` من صفحة تفاصيل الطلب.
  */
 export function OrderInvoice({ order }: { order: AdminOrder }) {
+  const barcodeRef = useRef<SVGSVGElement>(null)
   const shipping = order.shipping
   const customerName =
     [shipping?.firstName, shipping?.lastName].filter(Boolean).join(' ') || 'عميل'
+
+  useEffect(() => {
+    if (!barcodeRef.current) return
+    JsBarcode(barcodeRef.current, order.orderNumber, {
+      format: 'CODE128',
+      width: 2,
+      height: 48,
+      displayValue: true,
+      fontSize: 13,
+      margin: 4,
+      background: '#ffffff',
+      lineColor: '#1f2937',
+    })
+  }, [order.orderNumber])
 
   return (
     <div dir="rtl" className="mx-auto max-w-[820px] bg-white p-8 text-charcoal">
@@ -64,12 +83,15 @@ export function OrderInvoice({ order }: { order: AdminOrder }) {
             <p className="mt-1 text-xs text-muted">{config.site.description}</p>
           </div>
         </div>
-        <div className="text-left">
+        <div className="flex min-w-[220px] flex-col items-center rounded-lg border border-border px-3 py-2 text-center">
           <p className="text-lg font-semibold">فاتورة</p>
-          <p className="mt-1 text-xs text-muted">رقم الطلب</p>
-          <p className="font-mono text-sm font-semibold" dir="ltr">
-            {order.orderNumber}
-          </p>
+          <p className="mt-1 text-xs text-muted">باركود الطلب</p>
+          <svg
+            ref={barcodeRef}
+            role="img"
+            aria-label={`باركود الطلب ${order.orderNumber}`}
+            className="mt-1 h-auto max-w-full"
+          />
         </div>
       </header>
 
@@ -176,7 +198,7 @@ export function OrderInvoice({ order }: { order: AdminOrder }) {
       )}
 
       <footer className="mt-6 border-t border-border pt-3 text-center text-xs text-muted">
-        شكراً لتعاملكم مع {config.site.name} — هذه الفاتورة صادرة إلكترونياً.
+        شكراً لتعاملكم مع {config.site.name}
       </footer>
     </div>
   )

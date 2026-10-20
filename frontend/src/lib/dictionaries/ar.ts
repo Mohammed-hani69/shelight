@@ -183,7 +183,7 @@ export const ar: Dictionary = {
     codSub: 'ادفعي لما طلبك يوصلك',
     card: 'الدفع اونلاين',
     cardSub: 'دفع أونلاين آمن',
-    cardNote: 'الدفع بالكارت هيتاح قريبًا.',
+    cardNote: 'الدفع اونلاين هيتاح قريبًا.',
     yourOrder: 'طلبك',
     qty: 'الكمية: {qty}',
     subtotal: 'المجموع',
